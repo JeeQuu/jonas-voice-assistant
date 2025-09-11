@@ -15,15 +15,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No audio file provided' }, { status: 400 });
     }
 
-    // Check if API key exists
-    if (!process.env.OPENAI_API_KEY) {
-      console.error('Missing OPENAI_API_KEY');
+    // Check if API keys exist
+    const missingKeys = [];
+    if (!process.env.OPENAI_API_KEY) missingKeys.push('OPENAI_API_KEY');
+    if (!process.env.OPENROUTER_API_KEY) missingKeys.push('OPENROUTER_API_KEY');
+    if (!process.env.ELEVENLABS_API_KEY) missingKeys.push('ELEVENLABS_API_KEY');
+    
+    if (missingKeys.length > 0) {
+      console.error('Missing API keys:', missingKeys);
       // Return dummy response for testing
       return NextResponse.json({
         transcript: 'Test: API nycklar saknas',
-        response: 'Hej! API-nycklar behöver konfigureras i Render Environment Variables.',
+        response: `Följande API-nycklar saknas: ${missingKeys.join(', ')}. Gå till Render Dashboard → Environment och lägg till dem.`,
         memories: [],
-        audioUrl: null
+        audioUrl: null,
+        debug: {
+          missing: missingKeys,
+          hint: 'Besök /api/debug-env för att se alla environment variables'
+        }
       });
     }
 
