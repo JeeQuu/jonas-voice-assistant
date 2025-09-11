@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   // Check which environment variables are present
   const envCheck = {
-    OPENAI_API_KEY: !!process.env.OPENAI_API_KEY,
+    GROQ_API_KEY: !!process.env.GROQ_API_KEY,
     OPENROUTER_API_KEY: !!process.env.OPENROUTER_API_KEY,
     ELEVENLABS_API_KEY: !!process.env.ELEVENLABS_API_KEY,
     ELEVENLABS_VOICE_ID: !!process.env.ELEVENLABS_VOICE_ID,
@@ -12,7 +12,7 @@ export async function GET() {
     NODE_ENV: process.env.NODE_ENV,
     // Show first 4 chars of keys if they exist (for debugging)
     keys_preview: {
-      OPENAI: process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 4) + '...' : 'missing',
+      GROQ: process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.substring(0, 4) + '...' : 'missing',
       OPENROUTER: process.env.OPENROUTER_API_KEY ? process.env.OPENROUTER_API_KEY.substring(0, 4) + '...' : 'missing',
       ELEVENLABS: process.env.ELEVENLABS_API_KEY ? process.env.ELEVENLABS_API_KEY.substring(0, 4) + '...' : 'missing',
     }

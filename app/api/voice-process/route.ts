@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
 import axios from 'axios';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'dummy-key-for-testing',
-});
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     // Check if API keys exist
     const missingKeys = [];
-    if (!process.env.OPENAI_API_KEY) missingKeys.push('OPENAI_API_KEY');
+    if (!process.env.GROQ_API_KEY) missingKeys.push('GROQ_API_KEY');
     if (!process.env.OPENROUTER_API_KEY) missingKeys.push('OPENROUTER_API_KEY');
     if (!process.env.ELEVENLABS_API_KEY) missingKeys.push('ELEVENLABS_API_KEY');
     
@@ -36,13 +31,26 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Step 1: Convert audio to text using Whisper
-    const transcription = await openai.audio.transcriptions.create({
-      file: audioFile,
-      model: 'whisper-1',
-      language: 'sv', // Swedish
+    // Step 1: Convert audio to text using Groq Whisper (FREE and FAST!)
+    const groqFormData = new FormData();
+    groqFormData.append('file', audioFile);
+    groqFormData.append('model', 'whisper-large-v3');
+    groqFormData.append('language', 'sv'); // Swedish
+    groqFormData.append('response_format', 'json');
+
+    const transcriptionResponse = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+      },
+      body: groqFormData
     });
 
+    if (!transcriptionResponse.ok) {
+      throw new Error(`Groq transcription failed: ${transcriptionResponse.status}`);
+    }
+
+    const transcription = await transcriptionResponse.json();
     const userQuery = transcription.text;
 
     // Step 2: Search smart memories for context
@@ -106,7 +114,7 @@ Svara på svenska, kort och koncist. Använd informationen från minnena när de
     let audioUrl = null;
     try {
       // Use a default Swedish voice if ELEVENLABS_VOICE_ID is not set
-      const voiceId = process.env.ELEVENLABS_VOICE_ID || 'pNInz6obpgDQGcFmaJgB'; // Adam voice
+      const voiceId = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
       const voiceResponse = await fetch(
         `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,
         {
@@ -170,7 +178,7 @@ Svara på svenska, kort och koncist. Använd informationen från minnena när de
     const errorDetails = {
       error: errorMessage,
       type: error?.constructor?.name || 'Unknown',
-      hint: errorMessage.includes('API key') ? 'Check OPENAI_API_KEY in environment variables' : undefined
+      hint: errorMessage.includes('API key') ? 'Check API keys in environment variables' : undefined
     };
     
     return NextResponse.json(errorDetails, { status: 500 });
