@@ -151,11 +151,17 @@ Svara på svenska, kort och koncist. Använd informationen från minnena när de
       audioUrl
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Voice processing error:', error);
-    return NextResponse.json(
-      { error: 'Failed to process voice input' },
-      { status: 500 }
-    );
+    
+    // Better error message
+    const errorMessage = error?.message || 'Failed to process voice input';
+    const errorDetails = {
+      error: errorMessage,
+      type: error?.constructor?.name || 'Unknown',
+      hint: errorMessage.includes('API key') ? 'Check OPENAI_API_KEY in environment variables' : undefined
+    };
+    
+    return NextResponse.json(errorDetails, { status: 500 });
   }
 }
