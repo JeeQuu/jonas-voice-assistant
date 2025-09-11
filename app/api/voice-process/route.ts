@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import OpenAI from 'openai';
 import axios from 'axios';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || '',
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     // Check if API keys exist
     const missingKeys = [];
-    if (!process.env.GROQ_API_KEY) missingKeys.push('GROQ_API_KEY');
+    if (!process.env.OPENAI_API_KEY) missingKeys.push('OPENAI_API_KEY');
     if (!process.env.OPENROUTER_API_KEY) missingKeys.push('OPENROUTER_API_KEY');
     if (!process.env.ELEVENLABS_API_KEY) missingKeys.push('ELEVENLABS_API_KEY');
     
@@ -31,26 +36,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Step 1: Convert audio to text using Groq Whisper (FREE and FAST!)
-    const groqFormData = new FormData();
-    groqFormData.append('file', audioFile);
-    groqFormData.append('model', 'whisper-large-v3');
-    groqFormData.append('language', 'sv'); // Swedish
-    groqFormData.append('response_format', 'json');
-
-    const transcriptionResponse = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
-      },
-      body: groqFormData
+    // Step 1: Convert audio to text using OpenAI Whisper
+    const transcription = await openai.audio.transcriptions.create({
+      file: audioFile,
+      model: 'whisper-1',
+      language: 'sv', // Swedish
     });
 
-    if (!transcriptionResponse.ok) {
-      throw new Error(`Groq transcription failed: ${transcriptionResponse.status}`);
-    }
-
-    const transcription = await transcriptionResponse.json();
     const userQuery = transcription.text;
 
     // Step 2: Search smart memories for context
