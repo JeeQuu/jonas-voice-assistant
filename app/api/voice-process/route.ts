@@ -99,7 +99,18 @@ Svara på svenska, kort och koncist. Använd informationen från minnena när de
       })
     });
 
+    if (!chatResponse.ok) {
+      console.error('OpenRouter error:', await chatResponse.text());
+      throw new Error('OpenRouter API failed');
+    }
+
     const chatData = await chatResponse.json();
+    
+    if (!chatData.choices || !chatData.choices[0]) {
+      console.error('Unexpected OpenRouter response:', chatData);
+      throw new Error('Invalid OpenRouter response');
+    }
+    
     const aiResponse = chatData.choices[0].message.content;
 
     // Step 4: Convert response to speech using ElevenLabs
