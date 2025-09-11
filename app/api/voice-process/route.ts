@@ -37,13 +37,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 1: Convert audio to text using OpenAI Whisper
+    console.log('Audio file info:', {
+      name: audioFile.name,
+      size: audioFile.size,
+      type: audioFile.type
+    });
+
     const transcription = await openai.audio.transcriptions.create({
       file: audioFile,
       model: 'whisper-1',
       language: 'sv', // Swedish
+      prompt: 'Detta är en konversation på svenska.', // Help Whisper understand context
     });
 
     const userQuery = transcription.text;
+    console.log('Whisper transcription:', userQuery);
 
     // Step 2: Search smart memories for context
     let memories = [];

@@ -28,7 +28,7 @@ export default function Home() {
           };
           
           mediaRecorder.onstop = async () => {
-            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm;codecs=opus' });
             audioChunksRef.current = [];
             await processAudio(audioBlob);
           };
@@ -99,9 +99,10 @@ export default function Home() {
 
   const processAudio = async (audioBlob: Blob) => {
     try {
-      // Convert to WAV format for Whisper
+      // Send audio to API
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.webm');
+      // Rename to .opus for better Whisper support
+      formData.append('audio', audioBlob, 'recording.opus');
       
       // Send to our API endpoint for processing
       const result = await fetch('/api/voice-process', {
