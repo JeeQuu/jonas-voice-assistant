@@ -5,7 +5,7 @@ console.log('Testing API Keys Configuration:\n');
 
 // Check which keys exist
 const keys = {
-  'OPENAI_API_KEY': process.env.OPENAI_API_KEY,
+  'GROQ_API_KEY': process.env.GROQ_API_KEY,
   'OPENROUTER_API_KEY': process.env.OPENROUTER_API_KEY,
   'ELEVENLABS_API_KEY': process.env.ELEVENLABS_API_KEY,
   'ELEVENLABS_VOICE_ID': process.env.ELEVENLABS_VOICE_ID,
@@ -21,27 +21,30 @@ for (const [name, value] of Object.entries(keys)) {
   }
 }
 
-// Test OpenAI API
-async function testOpenAI() {
-  if (!process.env.OPENAI_API_KEY) {
-    console.log('\n❌ Cannot test OpenAI - API key missing');
+// Test Groq API
+async function testGroq() {
+  if (!process.env.GROQ_API_KEY) {
+    console.log('\n❌ Cannot test Groq - API key missing');
     return;
   }
   
   try {
-    const response = await fetch('https://api.openai.com/v1/models', {
+    const response = await fetch('https://api.groq.com/openai/v1/models', {
       headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
       }
     });
     
     if (response.ok) {
-      console.log('\n✅ OpenAI API key is valid');
+      console.log('\n✅ Groq API key is valid');
+      const data = await response.json();
+      const whisperModels = data.data.filter(m => m.id.includes('whisper'));
+      console.log(`   Found ${whisperModels.length} Whisper models available`);
     } else {
-      console.log('\n❌ OpenAI API key is invalid:', response.status);
+      console.log('\n❌ Groq API key is invalid:', response.status);
     }
   } catch (error) {
-    console.log('\n❌ OpenAI API test failed:', error.message);
+    console.log('\n❌ Groq API test failed:', error.message);
   }
 }
 
@@ -73,7 +76,7 @@ async function testElevenLabs() {
 
 // Run tests
 (async () => {
-  await testOpenAI();
+  await testGroq();
   await testElevenLabs();
   
   console.log('\n📝 Instructions for Render:');

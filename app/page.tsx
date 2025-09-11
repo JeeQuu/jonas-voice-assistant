@@ -10,6 +10,7 @@ export default function Home() {
   const [response, setResponse] = useState('');
   const [messages, setMessages] = useState<Array<{role: string, content: string}>>([]);
   const [memories, setMemories] = useState<any[]>([]);
+  const [textInput, setTextInput] = useState('');
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -51,6 +52,48 @@ export default function Home() {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       setIsProcessing(true);
+    }
+  };
+
+  const processText = async (text: string) => {
+    if (!text.trim()) return;
+    
+    setIsProcessing(true);
+    setTextInput('');
+    
+    try {
+      const result = await fetch('/api/text-process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      
+      const data = await result.json();
+      
+      if (data.transcript) {
+        setTranscript(data.transcript);
+        setMessages(prev => [...prev, { role: 'user', content: data.transcript }]);
+      }
+      
+      if (data.response) {
+        setResponse(data.response);
+        setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+      }
+      
+      if (data.memories) {
+        setMemories(data.memories);
+      }
+      
+      // Play audio response if available
+      if (data.audioUrl) {
+        const audio = new Audio(data.audioUrl);
+        audio.play();
+      }
+    } catch (error) {
+      console.error('Error processing text:', error);
+      setResponse('Ett fel uppstod. Kontrollera att alla API-nycklar är konfigurerade.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -158,8 +201,30 @@ export default function Home() {
             <p className="text-red-400 animate-pulse">🔴 Recording...</p>
           )}
           {isProcessing && (
-            <p className="text-blue-400">Processing your voice...</p>
+            <p className="text-blue-400">Processing...</p>
           )}
+        </div>
+
+        {/* Text Input (fallback while fixing speech-to-text) */}
+        <div className="mb-8">
+          <form onSubmit={(e) => { e.preventDefault(); processText(textInput); }} className="flex gap-2">
+            <input
+              type="text"
+              value={textInput}
+              onChange={(e) => setTextInput(e.target.value)}
+              placeholder="Skriv ditt meddelande här (temporär lösning medan vi fixar röst-API)..."
+              className="flex-1 p-3 bg-gray-800 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none"
+              disabled={isProcessing}
+            />
+            <button
+              type="submit"
+              disabled={isProcessing || !textInput.trim()}
+              className="px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              Skicka
+            </button>
+          </form>
+          <p className="text-xs text-gray-500 mt-2">OBS: Röst-till-text kräver giltig Groq/OpenAI API-nyckel</p>
         </div>
 
         {/* Transcript */}
