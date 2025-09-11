@@ -105,8 +105,10 @@ Svara på svenska, kort och koncist. Använd informationen från minnena när de
     // Step 4: Convert response to speech using ElevenLabs
     let audioUrl = null;
     try {
+      // Use a default Swedish voice if ELEVENLABS_VOICE_ID is not set
+      const voiceId = process.env.ELEVENLABS_VOICE_ID || 'pNInz6obpgDQGcFmaJgB'; // Adam voice
       const voiceResponse = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}/stream`,
+        `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,
         {
           method: 'POST',
           headers: {
