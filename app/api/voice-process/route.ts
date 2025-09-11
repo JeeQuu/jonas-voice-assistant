@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 import axios from 'axios';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || 'dummy-key-for-testing',
 });
 
 export async function POST(request: NextRequest) {
@@ -13,6 +13,18 @@ export async function POST(request: NextRequest) {
     
     if (!audioFile) {
       return NextResponse.json({ error: 'No audio file provided' }, { status: 400 });
+    }
+
+    // Check if API key exists
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('Missing OPENAI_API_KEY');
+      // Return dummy response for testing
+      return NextResponse.json({
+        transcript: 'Test: API nycklar saknas',
+        response: 'Hej! API-nycklar behöver konfigureras i Render Environment Variables.',
+        memories: [],
+        audioUrl: null
+      });
     }
 
     // Step 1: Convert audio to text using Whisper
