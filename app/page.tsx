@@ -104,8 +104,8 @@ export default function Home() {
       // Rename to .opus for better Whisper support
       formData.append('audio', audioBlob, 'recording.opus');
       
-      // Send to our API endpoint for processing
-      const result = await fetch('/api/voice-process', {
+      // Send to simple endpoint for now (voice-process has issues)
+      const result = await fetch('/api/voice-simple', {
         method: 'POST',
         body: formData
       });
@@ -165,8 +165,31 @@ export default function Home() {
           <p className="text-gray-400">Powered by your smart memory system</p>
         </div>
 
-        {/* Voice Control */}
-        <div className="flex justify-center mb-8">
+        {/* Text Input (primary input method) */}
+        <div className="mb-8 bg-blue-900/20 p-6 rounded-lg border border-blue-500/30">
+          <h3 className="text-lg font-semibold mb-4 text-blue-300">💬 Chatta med Jonas AI</h3>
+          <form onSubmit={(e) => { e.preventDefault(); processText(textInput); }} className="flex gap-2">
+            <input
+              type="text"
+              value={textInput}
+              onChange={(e) => setTextInput(e.target.value)}
+              placeholder="Skriv ditt meddelande här..."
+              className="flex-1 p-3 bg-gray-800 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none text-lg"
+              disabled={isProcessing}
+              autoFocus
+            />
+            <button
+              type="submit"
+              disabled={isProcessing || !textInput.trim()}
+              className="px-8 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
+            >
+              Skicka
+            </button>
+          </form>
+        </div>
+
+        {/* Voice Control (secondary - has issues) */}
+        <div className="flex justify-center mb-8 opacity-50">
           <button
             onClick={isRecording ? stopRecording : startRecording}
             disabled={isProcessing}
@@ -206,27 +229,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* Text Input (fallback while fixing speech-to-text) */}
-        <div className="mb-8">
-          <form onSubmit={(e) => { e.preventDefault(); processText(textInput); }} className="flex gap-2">
-            <input
-              type="text"
-              value={textInput}
-              onChange={(e) => setTextInput(e.target.value)}
-              placeholder="Skriv ditt meddelande här (temporär lösning medan vi fixar röst-API)..."
-              className="flex-1 p-3 bg-gray-800 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none"
-              disabled={isProcessing}
-            />
-            <button
-              type="submit"
-              disabled={isProcessing || !textInput.trim()}
-              className="px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
-            >
-              Skicka
-            </button>
-          </form>
-          <p className="text-xs text-gray-500 mt-2">OBS: Röst-till-text kräver giltig Groq/OpenAI API-nyckel</p>
-        </div>
 
         {/* Transcript */}
         {transcript && (
