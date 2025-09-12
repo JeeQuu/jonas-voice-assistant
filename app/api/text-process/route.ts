@@ -11,9 +11,13 @@ export async function POST(request: NextRequest) {
 
     const userQuery = text;
 
-    // Step 1: Search smart memories for context
+    // Step 1: Search smart memories for context (including emails and calendar)
     let memories = [];
+    let emailMemories = [];
+    let calendarMemories = [];
+    
     try {
+      // Search general memories
       const memoryResponse = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/api/memory-search`,
         {
@@ -22,6 +26,11 @@ export async function POST(request: NextRequest) {
         }
       );
       memories = memoryResponse.data.results || [];
+      
+      // Filter for email and calendar memories
+      emailMemories = memories.filter(m => m.type?.startsWith('email_'));
+      calendarMemories = memories.filter(m => m.type?.startsWith('calendar_'));
+      
     } catch (error) {
       console.error('Memory search failed:', error);
     }
@@ -89,11 +98,31 @@ ALLTID:
 - Koppla ihop olika delar av livet
 - Kom med konkreta actionables`;
 
-    const memoryContext = memories.length > 0 
-      ? `\n\nRelevanta minnen:\n${memories.map((m: any) => 
-          `- ${m.title || m.content?.substring(0, 100)}`
-        ).join('\n')}`
-      : '';
+    // Build comprehensive context from all memory types
+    let memoryContext = '';
+    
+    if (emailMemories.length > 0) {
+      memoryContext += `\n\nRECENT EMAILS:\n${emailMemories.map((m: any) => 
+        `- ${m.title} (${m.metadata?.from || 'Unknown sender'})`
+      ).join('\n')}`;
+    }
+    
+    if (calendarMemories.length > 0) {
+      memoryContext += `\n\nUPCOMING EVENTS:\n${calendarMemories.map((m: any) => {
+        const date = m.metadata?.startDate ? new Date(m.metadata.startDate).toLocaleDateString('sv-SE') : '';
+        return `- ${m.title} (${date})${m.metadata?.location ? ` at ${m.metadata.location}` : ''}`;
+      }).join('\n')}`;
+    }
+    
+    const otherMemories = memories.filter(m => 
+      !m.type?.startsWith('email_') && !m.type?.startsWith('calendar_')
+    );
+    
+    if (otherMemories.length > 0) {
+      memoryContext += `\n\nRELEVANT MEMORIES:\n${otherMemories.map((m: any) => 
+        `- ${m.title || m.content?.substring(0, 100)}`
+      ).join('\n')}`;
+    }
 
     const chatResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
