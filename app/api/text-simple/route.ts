@@ -45,10 +45,10 @@ export async function POST(request: NextRequest) {
               text: response,
               model_id: 'eleven_multilingual_v2',
               voice_settings: {
-                stability: 0.5,
-                similarity_boost: 0.75,
-                style: 0.5,
-                use_speaker_boost: true
+                stability: 0.85,           // Higher = slower, more deliberate, zen-like
+                similarity_boost: 0.65,    // Moderate for natural calm tone
+                style: 0.2,                // Lower = more neutral, peaceful, meditative
+                use_speaker_boost: false   // No boost = softer, gentler delivery
               }
             })
           }

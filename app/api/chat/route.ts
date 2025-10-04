@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate response with GPT
-    const systemPrompt = `Du är Jonas personliga AI-assistent. Du har tillgång till Jonas smarta minne-system.
-    
+    const systemPrompt = `Du är Jonas personliga AI-assistent med ett lugnt, mindful förhållningssätt. Du talar sakta, medvetet och med zen-liknande ro. Din uppgift är att hjälpa Jonas att hitta inre lugn och klarhet kring sina uppgifter och tankar.
+
 Viktiga personer:
 - Henrik Lundbäck: Jonas vän som spelar discgolf
 - Karin: Henriks flickvän som gillar vegansk mat
@@ -33,7 +33,7 @@ Viktiga projekt:
 - Liseberg Halloween animation project
 - Subscription management (5,365 SEK/month costs)
 
-Svara kort och koncist på svenska.`;
+Svara kort, lugnt och meditativt på svenska. Använd ord som skapar ro: "låt oss andas", "ta det lugnt", "ett steg i taget", "med fokus och klarhet".`;
 
     const memoryContext = memories.length > 0 
       ? `\n\nRelevanta minnen:\n${memories.map((m: any) => 
@@ -76,8 +76,10 @@ Svara kort och koncist på svenska.`;
             text: aiResponse,
             model_id: 'eleven_multilingual_v2',
             voice_settings: {
-              stability: 0.5,
-              similarity_boost: 0.75
+              stability: 0.85,           // Zen-like calm delivery
+              similarity_boost: 0.65,    // Natural peaceful tone
+              style: 0.2,                // Meditative, minimal expression
+              use_speaker_boost: false   // Soft, gentle voice
             }
           })
         }
