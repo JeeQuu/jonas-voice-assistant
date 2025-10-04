@@ -19,11 +19,11 @@ export function useTasks(dayOffset: number = 0) {
 
     try {
       const [todosRes, calendarRes] = await Promise.all([
-        axios.get(`${API_URL}/api/memory-search`, {
+        axios.get(`${API_URL}/api/memory-search-fixed`, {
           params: { q: 'todo', smart: true, limit: 20 },
           headers: { 'x-api-key': API_KEY }
         }),
-        axios.get(`${API_URL}/api/calendar/events`, {
+        axios.get(`${API_URL}/api/calendar-events`, {
           params: { days: 7 },
           headers: { 'x-api-key': API_KEY }
         })
