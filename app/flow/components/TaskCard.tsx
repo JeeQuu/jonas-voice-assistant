@@ -33,7 +33,7 @@ export default function TaskCard({ task, onComplete, simple = false }: TaskCardP
             : `bg-transparent border-white/40`
         }`}>
           {task.completed && (
-            <span className="text-white font-black text-lg">✓</span>
+            <div className="w-4 h-2 border-l-4 border-b-4 border-white transform rotate-[-45deg] translate-y-[-2px]"></div>
           )}
         </div>
         <div className="flex-1 min-w-0">
@@ -44,7 +44,7 @@ export default function TaskCard({ task, onComplete, simple = false }: TaskCardP
             <p className="text-white/50 text-sm font-medium truncate">{task.description}</p>
           )}
           {task.time && (
-            <p className="text-white/60 text-sm font-bold mt-1">⏰ {task.time}</p>
+            <p className="text-white/60 text-sm font-bold mt-1">{task.time}</p>
           )}
         </div>
         {task.urgent && !task.completed && (

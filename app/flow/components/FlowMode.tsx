@@ -68,28 +68,90 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
       animate={{ backgroundColor: getBackgroundColor() }}
       transition={{ duration: 0.5 }}
     >
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-20 pointer-events-none">
+      {/* Magical organic background pattern */}
+      <div className="absolute inset-0 opacity-15 pointer-events-none overflow-hidden">
+        {/* Floating organic shapes */}
         <motion.div
-          className="absolute inset-0"
+          className="absolute w-96 h-96 rounded-full blur-3xl"
           style={{
-            backgroundImage: `repeating-linear-gradient(
-              45deg,
-              transparent,
-              transparent 35px,
-              rgba(0,0,0,0.1) 35px,
-              rgba(0,0,0,0.1) 70px
-            )`,
+            background: 'radial-gradient(circle, rgba(0,0,0,0.2) 0%, transparent 70%)',
+            left: '10%',
+            top: '20%',
           }}
           animate={{
-            backgroundPosition: ['0px 0px', '100px 100px'],
+            x: [0, 100, 0],
+            y: [0, -80, 0],
+            scale: [1, 1.2, 1],
           }}
           transition={{
-            duration: 20,
+            duration: 15,
             repeat: Infinity,
-            ease: 'linear',
+            ease: 'easeInOut',
           }}
         />
+        <motion.div
+          className="absolute w-64 h-64 rounded-full blur-2xl"
+          style={{
+            background: 'radial-gradient(circle, rgba(0,0,0,0.15) 0%, transparent 70%)',
+            right: '15%',
+            top: '40%',
+          }}
+          animate={{
+            x: [0, -60, 0],
+            y: [0, 100, 0],
+            scale: [1, 1.3, 1],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 1,
+          }}
+        />
+        <motion.div
+          className="absolute w-80 h-80 rounded-full blur-3xl"
+          style={{
+            background: 'radial-gradient(circle, rgba(0,0,0,0.18) 0%, transparent 70%)',
+            left: '50%',
+            bottom: '20%',
+          }}
+          animate={{
+            x: [0, -80, 0],
+            y: [0, -60, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 2,
+          }}
+        />
+        {/* Organic mesh pattern */}
+        <svg className="absolute inset-0 w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="organic-mesh" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+              <path d="M 0 50 Q 50 20, 100 50 T 200 50" stroke="currentColor" fill="none" strokeWidth="1" opacity="0.3"/>
+              <path d="M 50 0 Q 80 50, 50 100 T 50 200" stroke="currentColor" fill="none" strokeWidth="1" opacity="0.3"/>
+              <circle cx="50" cy="50" r="3" fill="currentColor" opacity="0.4"/>
+              <circle cx="150" cy="100" r="2" fill="currentColor" opacity="0.5"/>
+              <circle cx="100" cy="150" r="2.5" fill="currentColor" opacity="0.4"/>
+            </pattern>
+          </defs>
+          <motion.rect
+            width="100%"
+            height="100%"
+            fill="url(#organic-mesh)"
+            animate={{
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+        </svg>
       </div>
       {/* Header - Clean geometric */}
       <div className="text-center mb-12 relative z-10">
@@ -114,8 +176,8 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          {currentDay > -1 && '← SWIPE IGÅR '}
-          {currentDay < 1 && ' SWIPE IMORGON →'}
+          {currentDay > -1 && 'SWIPE IGÅR '}
+          {currentDay < 1 && ' SWIPE IMORGON'}
         </motion.p>
       </div>
 
@@ -141,8 +203,8 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
 
       {/* Empty state */}
       {tasks.length === 0 && (
-        <div className="text-center text-[#2C3E50]/40 mt-20">
-          <p className="text-2xl font-black">✨ INGA UPPGIFTER {getDayLabel().toUpperCase()}</p>
+        <div className="text-center text-[#2C3E50]/40 mt-20 relative z-10">
+          <p className="text-2xl font-black">INGA UPPGIFTER {getDayLabel().toUpperCase()}</p>
           <p className="text-sm mt-2 font-bold">SWIPE FÖR ANDRA DAGAR</p>
         </div>
       )}

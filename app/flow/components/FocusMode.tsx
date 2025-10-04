@@ -39,7 +39,7 @@ export default function FocusMode({ onToggleMode }: FocusModeProps) {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          🎯 FOCUS
+          FOCUS
         </motion.h1>
 
         {/* Progress */}
@@ -87,9 +87,9 @@ export default function FocusMode({ onToggleMode }: FocusModeProps) {
           return (
             <div key={category}>
               <h3 className="text-white font-black text-lg mb-3 uppercase">
-                {category === 'jobb' && '💼 Jobb'}
-                {category === 'familj' && '👨‍👩‍👧 Familj'}
-                {category === 'hälsa' && '💪 Hälsa'}
+                {category === 'jobb' && 'Jobb'}
+                {category === 'familj' && 'Familj'}
+                {category === 'hälsa' && 'Hälsa'}
               </h3>
               <div className="space-y-2">
                 <AnimatePresence>
@@ -118,14 +118,14 @@ export default function FocusMode({ onToggleMode }: FocusModeProps) {
         {filteredTasks.length === 0 && (
           <div className="text-center text-white/50 py-20">
             <p className="text-3xl font-black mb-2">
-              {filter === 'active' && '🎉 INGA AKTIVA UPPGIFTER!'}
-              {filter === 'completed' && '📝 INGA KLARA UPPGIFTER ÄN'}
-              {filter === 'all' && '✨ INGA UPPGIFTER IDAG'}
+              {filter === 'active' && 'INGA AKTIVA UPPGIFTER'}
+              {filter === 'completed' && 'INGA KLARA UPPGIFTER ÄN'}
+              {filter === 'all' && 'INGA UPPGIFTER IDAG'}
             </p>
             <p className="text-sm font-bold">
-              {filter === 'active' && 'BRA JOBBAT!'}
+              {filter === 'active' && 'BRA JOBBAT'}
               {filter === 'completed' && 'BÖRJA CHECKA AV SAKER'}
-              {filter === 'all' && 'CHILL DAG?'}
+              {filter === 'all' && 'CHILL DAG'}
             </p>
           </div>
         )}

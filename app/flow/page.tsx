@@ -57,7 +57,7 @@ export default function FlowDashboard() {
 
       {/* Mode indicator - geometric block */}
       <div className="fixed bottom-4 right-4 bg-[#2C3E50] text-white px-4 py-2 border-4 border-white font-black text-xs shadow-lg">
-        {mode === 'flow' ? '✨ FLOW' : '🎯 FOCUS'} • DOUBLE-TAP
+        {mode === 'flow' ? 'FLOW' : 'FOCUS'} • DOUBLE-TAP
       </div>
 
       {/* Music toggle - geometric block */}
@@ -65,7 +65,7 @@ export default function FlowDashboard() {
         onClick={toggleMute}
         className="fixed bottom-4 left-4 bg-[#87CEEB] text-[#2C3E50] px-4 py-2 border-4 border-white font-black text-xs shadow-lg hover:scale-105 transition-transform"
       >
-        {isMuted ? '🔇 MUTED' : '🎵 ZEN MUSIC'}
+        {isMuted ? 'MUTED' : 'ZEN MUSIC'}
       </button>
     </div>
   );
