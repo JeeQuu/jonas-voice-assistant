@@ -17,13 +17,6 @@ export function useTasks(dayOffset: number = 0) {
   const fetchTasks = async () => {
     setLoading(true);
 
-    // For MVP: Use mock data (API integration coming soon!)
-    console.log('🎨 FLOW MVP: Using mock data for day offset:', dayOffset);
-    setTasks(getMockTasks(dayOffset));
-    setLoading(false);
-
-    // TODO: Uncomment when API is ready
-    /*
     try {
       const [todosRes, calendarRes] = await Promise.all([
         axios.get(`${API_URL}/api/memory-search`, {
@@ -76,11 +69,11 @@ export function useTasks(dayOffset: number = 0) {
       setTasks(allTasks);
     } catch (error) {
       console.error('Failed to fetch tasks:', error);
+      // Fallback to mock data if API fails
       setTasks(getMockTasks(dayOffset));
     } finally {
       setLoading(false);
     }
-    */
   };
 
   const markComplete = async (id: string) => {

@@ -61,43 +61,9 @@ Svara kort, lugnt och meditativt på svenska. Använd ord som skapar ro: "låt o
     const chatData = await chatResponse.json();
     const aiResponse = chatData.choices[0].message.content;
 
-    // Generate audio with ElevenLabs (optional)
-    let audioUrl = null;
-    try {
-      const voiceResponse = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}/stream`,
-        {
-          method: 'POST',
-          headers: {
-            'xi-api-key': process.env.ELEVENLABS_API_KEY!,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            text: aiResponse,
-            model_id: 'eleven_multilingual_v2',
-            voice_settings: {
-              stability: 0.85,           // Zen-like calm delivery
-              similarity_boost: 0.65,    // Natural peaceful tone
-              style: 0.2,                // Meditative, minimal expression
-              use_speaker_boost: false   // Soft, gentle voice
-            }
-          })
-        }
-      );
-
-      if (voiceResponse.ok) {
-        const audioBuffer = await voiceResponse.arrayBuffer();
-        const base64Audio = Buffer.from(audioBuffer).toString('base64');
-        audioUrl = `data:audio/mpeg;base64,${base64Audio}`;
-      }
-    } catch (error) {
-      console.error('TTS failed:', error);
-    }
-
     return NextResponse.json({
       response: aiResponse,
-      memories: memories.slice(0, 3),
-      audioUrl
+      memories: memories.slice(0, 3)
     });
 
   } catch (error) {

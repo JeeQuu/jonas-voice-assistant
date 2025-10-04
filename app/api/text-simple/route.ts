@@ -28,47 +28,10 @@ export async function POST(request: NextRequest) {
       response = `Jag förstår att du frågar om "${text}". Just nu fungerar jag i begränsat läge utan OpenRouter API. Jag kan svara på frågor om din familj (Sonja, Sigge, Stella), Liseberg-projektet, dina prenumerationer eller vänner som Henrik.`;
     }
 
-    // Try ElevenLabs if available
-    let audioUrl = null;
-    if (process.env.ELEVENLABS_API_KEY) {
-      try {
-        const voiceId = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
-        const voiceResponse = await fetch(
-          `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,
-          {
-            method: 'POST',
-            headers: {
-              'xi-api-key': process.env.ELEVENLABS_API_KEY,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              text: response,
-              model_id: 'eleven_multilingual_v2',
-              voice_settings: {
-                stability: 0.85,           // Higher = slower, more deliberate, zen-like
-                similarity_boost: 0.65,    // Moderate for natural calm tone
-                style: 0.2,                // Lower = more neutral, peaceful, meditative
-                use_speaker_boost: false   // No boost = softer, gentler delivery
-              }
-            })
-          }
-        );
-
-        if (voiceResponse.ok) {
-          const audioBuffer = await voiceResponse.arrayBuffer();
-          const base64Audio = Buffer.from(audioBuffer).toString('base64');
-          audioUrl = `data:audio/mpeg;base64,${base64Audio}`;
-        }
-      } catch (error) {
-        console.error('ElevenLabs TTS failed:', error);
-      }
-    }
-
     return NextResponse.json({
       transcript: text,
       response,
-      memories: [],
-      audioUrl
+      memories: []
     });
 
   } catch (error: any) {
