@@ -56,13 +56,15 @@ export default function TaskCard({ task, onComplete, simple = false }: TaskCardP
 
   // Full FLOW mode card - Flat tetris block style
   return (
-    <motion.div
-      className="relative cursor-pointer h-full"
-      whileTap={{ scale: 0.98 }}
+    <div
+      className="relative cursor-pointer h-full transition-transform duration-150 active:scale-95 hover:scale-[1.02] will-change-transform"
       onClick={handleTap}
+      style={{
+        transform: 'translate3d(0,0,0)', // GPU acceleration
+      }}
     >
       <div
-        className={`relative p-5 ${style.bg} border-4 ${style.borderColor} overflow-hidden h-full flex flex-col`}
+        className={`relative p-5 ${style.bg} border-4 ${style.borderColor} overflow-hidden h-full flex flex-col transition-shadow duration-150`}
         style={{
           boxShadow: '6px 6px 0px rgba(0,0,0,0.3)',
         }}
@@ -124,6 +126,6 @@ export default function TaskCard({ task, onComplete, simple = false }: TaskCardP
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

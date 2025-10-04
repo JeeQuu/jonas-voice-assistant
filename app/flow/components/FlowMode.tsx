@@ -68,16 +68,57 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
       animate={{ backgroundColor: getBackgroundColor() }}
       transition={{ duration: 0.5 }}
     >
-      {/* Simplified background pattern - mobile optimized */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 30%, rgba(0,0,0,0.1) 0%, transparent 50%),
-                             radial-gradient(circle at 80% 70%, rgba(0,0,0,0.08) 0%, transparent 50%)`,
-          }}
+      {/* CSS-animated background - GPU accelerated */}
+      <div className="absolute inset-0 opacity-15 pointer-events-none overflow-hidden">
+        <div className="absolute w-96 h-96 rounded-full opacity-20 animate-float-slow"
+             style={{
+               background: 'radial-gradient(circle, rgba(0,0,0,0.3) 0%, transparent 70%)',
+               left: '10%',
+               top: '20%',
+               transform: 'translate3d(0,0,0)', // GPU acceleration
+             }}
+        />
+        <div className="absolute w-64 h-64 rounded-full opacity-15 animate-float-medium"
+             style={{
+               background: 'radial-gradient(circle, rgba(0,0,0,0.2) 0%, transparent 70%)',
+               right: '15%',
+               top: '40%',
+               transform: 'translate3d(0,0,0)',
+             }}
+        />
+        <div className="absolute w-80 h-80 rounded-full opacity-18 animate-float-fast"
+             style={{
+               background: 'radial-gradient(circle, rgba(0,0,0,0.25) 0%, transparent 70%)',
+               left: '50%',
+               bottom: '20%',
+               transform: 'translate3d(0,0,0)',
+             }}
         />
       </div>
+
+      <style jsx>{`
+        @keyframes float-slow {
+          0%, 100% { transform: translate3d(0, 0, 0); }
+          50% { transform: translate3d(80px, -60px, 0); }
+        }
+        @keyframes float-medium {
+          0%, 100% { transform: translate3d(0, 0, 0); }
+          50% { transform: translate3d(-50px, 80px, 0); }
+        }
+        @keyframes float-fast {
+          0%, 100% { transform: translate3d(0, 0, 0); }
+          50% { transform: translate3d(-70px, -50px, 0); }
+        }
+        .animate-float-slow {
+          animation: float-slow 20s ease-in-out infinite;
+        }
+        .animate-float-medium {
+          animation: float-medium 15s ease-in-out infinite;
+        }
+        .animate-float-fast {
+          animation: float-fast 18s ease-in-out infinite;
+        }
+      `}</style>
       {/* Header - Clean geometric */}
       <div className="text-center mb-12 relative z-10">
         <motion.h1
