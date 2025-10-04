@@ -57,11 +57,12 @@ export default function Home() {
 
   const processText = async (text: string) => {
     if (!text.trim()) return;
-    
+
     setIsProcessing(true);
     setTextInput('');
-    
+
     try {
+      // Use text-process for full AI capabilities
       const result = await fetch('/api/text-process', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
