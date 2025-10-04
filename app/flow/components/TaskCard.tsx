@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import { Task } from '../types';
 import { getCategoryStyle } from '../utils/categoryStyles';
-import { soundEffects } from '../utils/soundEffects';
 
 interface TaskCardProps {
   task: Task;
@@ -15,7 +14,6 @@ export default function TaskCard({ task, onComplete, simple = false }: TaskCardP
   const style = getCategoryStyle(task.category);
 
   const handleTap = () => {
-    soundEffects.playClick(task.category);
     if (onComplete) {
       onComplete(task.id);
     }
@@ -60,8 +58,7 @@ export default function TaskCard({ task, onComplete, simple = false }: TaskCardP
   return (
     <motion.div
       className="relative cursor-pointer h-full"
-      whileHover={{ scale: 1.02, rotate: 1 }}
-      whileTap={{ scale: 0.98, rotate: -1 }}
+      whileTap={{ scale: 0.98 }}
       onClick={handleTap}
     >
       <div

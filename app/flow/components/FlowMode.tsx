@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, Reorder } from 'framer-motion';
+import { motion } from 'framer-motion';
 import TaskCard from './TaskCard';
 import { useTasks } from '../hooks/useTasks';
 import { Category } from '../types';
-import { soundEffects } from '../utils/soundEffects';
 
 interface FlowModeProps {
   onToggleMode: () => void;
@@ -15,18 +14,11 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
   const [currentDay, setCurrentDay] = useState(0); // -1 = yesterday, 0 = today, 1 = tomorrow
   const { tasks, loading } = useTasks(currentDay);
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
-  const [orderedTasks, setOrderedTasks] = useState<typeof tasks>([]);
-
-  useEffect(() => {
-    setOrderedTasks(tasks);
-  }, [tasks]);
 
   const handleSwipe = (direction: 'left' | 'right') => {
     if (direction === 'left' && currentDay < 1) {
-      soundEffects.playSwipe();
       setCurrentDay(currentDay + 1); // Tomorrow
     } else if (direction === 'right' && currentDay > -1) {
-      soundEffects.playSwipe();
       setCurrentDay(currentDay - 1); // Yesterday
     }
   };
@@ -76,90 +68,15 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
       animate={{ backgroundColor: getBackgroundColor() }}
       transition={{ duration: 0.5 }}
     >
-      {/* Magical organic background pattern */}
-      <div className="absolute inset-0 opacity-15 pointer-events-none overflow-hidden">
-        {/* Floating organic shapes */}
-        <motion.div
-          className="absolute w-96 h-96 rounded-full blur-3xl"
+      {/* Simplified background pattern - mobile optimized */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <div
+          className="absolute inset-0"
           style={{
-            background: 'radial-gradient(circle, rgba(0,0,0,0.2) 0%, transparent 70%)',
-            left: '10%',
-            top: '20%',
-          }}
-          animate={{
-            x: [0, 100, 0],
-            y: [0, -80, 0],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: 'easeInOut',
+            backgroundImage: `radial-gradient(circle at 20% 30%, rgba(0,0,0,0.1) 0%, transparent 50%),
+                             radial-gradient(circle at 80% 70%, rgba(0,0,0,0.08) 0%, transparent 50%)`,
           }}
         />
-        <motion.div
-          className="absolute w-64 h-64 rounded-full blur-2xl"
-          style={{
-            background: 'radial-gradient(circle, rgba(0,0,0,0.15) 0%, transparent 70%)',
-            right: '15%',
-            top: '40%',
-          }}
-          animate={{
-            x: [0, -60, 0],
-            y: [0, 100, 0],
-            scale: [1, 1.3, 1],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: 1,
-          }}
-        />
-        <motion.div
-          className="absolute w-80 h-80 rounded-full blur-3xl"
-          style={{
-            background: 'radial-gradient(circle, rgba(0,0,0,0.18) 0%, transparent 70%)',
-            left: '50%',
-            bottom: '20%',
-          }}
-          animate={{
-            x: [0, -80, 0],
-            y: [0, -60, 0],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: 2,
-          }}
-        />
-        {/* Organic mesh pattern */}
-        <svg className="absolute inset-0 w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="organic-mesh" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
-              <path d="M 0 50 Q 50 20, 100 50 T 200 50" stroke="currentColor" fill="none" strokeWidth="1" opacity="0.3"/>
-              <path d="M 50 0 Q 80 50, 50 100 T 50 200" stroke="currentColor" fill="none" strokeWidth="1" opacity="0.3"/>
-              <circle cx="50" cy="50" r="3" fill="currentColor" opacity="0.4"/>
-              <circle cx="150" cy="100" r="2" fill="currentColor" opacity="0.5"/>
-              <circle cx="100" cy="150" r="2.5" fill="currentColor" opacity="0.4"/>
-            </pattern>
-          </defs>
-          <motion.rect
-            width="100%"
-            height="100%"
-            fill="url(#organic-mesh)"
-            animate={{
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        </svg>
       </div>
       {/* Header - Clean geometric */}
       <div className="text-center mb-12 relative z-10">
@@ -189,38 +106,24 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
         </motion.p>
       </div>
 
-      {/* Tetris Grid - Draggable rearrange */}
+      {/* Tetris Grid - Simple and fast */}
       <div className="max-w-7xl mx-auto relative z-10">
-        <Reorder.Group
-          axis="y"
-          values={orderedTasks}
-          onReorder={setOrderedTasks}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {orderedTasks.map((task, idx) => (
-            <Reorder.Item
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {tasks.map((task, idx) => (
+            <motion.div
               key={task.id}
-              value={task}
-              initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ delay: idx * 0.1 }}
-              onHoverStart={() => {
-                setActiveCategory(task.category);
-                soundEffects.playHover(task.category);
-              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: idx * 0.05, duration: 0.2 }}
+              onHoverStart={() => setActiveCategory(task.category)}
               onHoverEnd={() => setActiveCategory(null)}
-              onTouchStart={() => {
-                setActiveCategory(task.category);
-                soundEffects.playHover(task.category);
-              }}
+              onTouchStart={() => setActiveCategory(task.category)}
               onTouchEnd={() => setActiveCategory(null)}
-              onClick={() => soundEffects.playClick(task.category)}
-              className="cursor-grab active:cursor-grabbing"
             >
               <TaskCard task={task} />
-            </Reorder.Item>
+            </motion.div>
           ))}
-        </Reorder.Group>
+        </div>
       </div>
 
       {/* Empty state */}
