@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskCard from './TaskCard';
 import { useTasks } from '../hooks/useTasks';
+import { soundEffects } from '../utils/soundEffects';
 
 interface FocusModeProps {
   onToggleMode: () => void;

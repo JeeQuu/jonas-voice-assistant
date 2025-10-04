@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import FlowMode from './components/FlowMode';
 import FocusMode from './components/FocusMode';
+import { soundEffects } from './utils/soundEffects';
 
 export default function FlowDashboard() {
   const [mode, setMode] = useState<'flow' | 'focus'>('flow');
@@ -34,6 +35,7 @@ export default function FlowDashboard() {
   }, []);
 
   const toggleMode = () => {
+    soundEffects.playSwipe();
     setMode(mode === 'flow' ? 'focus' : 'flow');
   };
 

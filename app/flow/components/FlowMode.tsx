@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import TaskCard from './TaskCard';
 import { useTasks } from '../hooks/useTasks';
 import { Category } from '../types';
+import { soundEffects } from '../utils/soundEffects';
 
 interface FlowModeProps {
   onToggleMode: () => void;
@@ -17,8 +18,10 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
 
   const handleSwipe = (direction: 'left' | 'right') => {
     if (direction === 'left' && currentDay < 1) {
+      soundEffects.playSwipe();
       setCurrentDay(currentDay + 1); // Tomorrow
     } else if (direction === 'right' && currentDay > -1) {
+      soundEffects.playSwipe();
       setCurrentDay(currentDay - 1); // Yesterday
     }
   };
@@ -190,10 +193,17 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
               initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
               animate={{ opacity: 1, scale: 1, rotate: 0 }}
               transition={{ delay: idx * 0.1 }}
-              onHoverStart={() => setActiveCategory(task.category)}
+              onHoverStart={() => {
+                setActiveCategory(task.category);
+                soundEffects.playHover(task.category);
+              }}
               onHoverEnd={() => setActiveCategory(null)}
-              onTouchStart={() => setActiveCategory(task.category)}
+              onTouchStart={() => {
+                setActiveCategory(task.category);
+                soundEffects.playHover(task.category);
+              }}
               onTouchEnd={() => setActiveCategory(null)}
+              onClick={() => soundEffects.playClick(task.category)}
             >
               <TaskCard task={task} />
             </motion.div>
