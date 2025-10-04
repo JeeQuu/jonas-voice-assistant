@@ -54,21 +54,18 @@ export default function TaskCard({ task, onComplete, simple = false }: TaskCardP
     );
   }
 
-  // Full FLOW mode card - Flat puzzle piece style
+  // Full FLOW mode card - Flat tetris block style
   return (
     <motion.div
-      className="relative max-w-md mx-auto cursor-grab active:cursor-grabbing"
-      drag
-      dragConstraints={{ left: -100, right: 100, top: -50, bottom: 50 }}
-      dragElastic={0.1}
-      whileHover={{ scale: 1.05, rotate: 2 }}
-      whileTap={{ scale: 0.95, rotate: -2 }}
+      className="relative cursor-pointer h-full"
+      whileHover={{ scale: 1.02, rotate: 1 }}
+      whileTap={{ scale: 0.98, rotate: -1 }}
       onClick={handleTap}
     >
       <div
-        className={`relative p-6 ${style.bg} border-4 ${style.borderColor} overflow-hidden`}
+        className={`relative p-5 ${style.bg} border-4 ${style.borderColor} overflow-hidden h-full flex flex-col`}
         style={{
-          boxShadow: '8px 8px 0px rgba(0,0,0,0.3)', // Flat shadow like in image
+          boxShadow: '6px 6px 0px rgba(0,0,0,0.3)',
         }}
       >
         {/* BIG Geometric Pattern - covers whole card */}
@@ -114,7 +111,7 @@ export default function TaskCard({ task, onComplete, simple = false }: TaskCardP
 
           {/* Progress bar - geometric */}
           {task.progress !== undefined && (
-            <div className="mt-4">
+            <div className="mt-auto pt-3">
               <div className="h-3 bg-white/30 border-2 border-white overflow-hidden">
                 <motion.div
                   className="h-full bg-white"
@@ -126,11 +123,6 @@ export default function TaskCard({ task, onComplete, simple = false }: TaskCardP
               <p className="text-white font-bold text-xs mt-1">{task.progress}%</p>
             </div>
           )}
-
-          {/* Drag hint */}
-          <div className="mt-4 text-white/60 text-xs font-bold">
-            DRAG TO MOVE
-          </div>
         </div>
       </div>
     </motion.div>

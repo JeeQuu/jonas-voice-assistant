@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import TaskCard from './TaskCard';
-import { Task, Category } from '../types';
 import { useTasks } from '../hooks/useTasks';
 
 interface FlowModeProps {
@@ -13,19 +12,6 @@ interface FlowModeProps {
 export default function FlowMode({ onToggleMode }: FlowModeProps) {
   const [currentDay, setCurrentDay] = useState(0); // -1 = yesterday, 0 = today, 1 = tomorrow
   const { tasks, loading } = useTasks(currentDay);
-
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX - window.innerWidth / 2);
-      mouseY.set(e.clientY - window.innerHeight / 2);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [mouseX, mouseY]);
 
   const handleSwipe = (direction: 'left' | 'right') => {
     if (direction === 'left' && currentDay < 1) {
@@ -52,11 +38,6 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
     });
   };
 
-  const groupedTasks = tasks.reduce((acc, task) => {
-    if (!acc[task.category]) acc[task.category] = [];
-    acc[task.category].push(task);
-    return acc;
-  }, {} as Record<Category, Task[]>);
 
   if (loading) {
     return (
@@ -104,46 +85,20 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
         </motion.p>
       </div>
 
-      {/* Parallax Cards Container */}
-      <div className="relative max-w-5xl mx-auto">
-        {/* Jobb - Depth 1 (front) */}
-        {groupedTasks.jobb?.map((task, idx) => (
-          <ParallaxCard
-            key={task.id}
-            task={task}
-            mouseX={mouseX}
-            mouseY={mouseY}
-            depth={1}
-            index={idx}
-            total={groupedTasks.jobb.length}
-          />
-        ))}
-
-        {/* Familj - Depth 2 (middle) */}
-        {groupedTasks.familj?.map((task, idx) => (
-          <ParallaxCard
-            key={task.id}
-            task={task}
-            mouseX={mouseX}
-            mouseY={mouseY}
-            depth={2}
-            index={idx}
-            total={groupedTasks.familj.length}
-          />
-        ))}
-
-        {/* Hälsa - Depth 3 (back) */}
-        {groupedTasks.hälsa?.map((task, idx) => (
-          <ParallaxCard
-            key={task.id}
-            task={task}
-            mouseX={mouseX}
-            mouseY={mouseY}
-            depth={3}
-            index={idx}
-            total={groupedTasks.hälsa.length}
-          />
-        ))}
+      {/* Tetris Grid - All cards visible side by side */}
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {tasks.map((task, idx) => (
+            <motion.div
+              key={task.id}
+              initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ delay: idx * 0.1 }}
+            >
+              <TaskCard task={task} />
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       {/* Empty state */}
@@ -153,47 +108,6 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
           <p className="text-sm mt-2 font-bold">SWIPE FÖR ANDRA DAGAR</p>
         </div>
       )}
-    </motion.div>
-  );
-}
-
-// Parallax Card Wrapper
-function ParallaxCard({
-  task,
-  mouseX,
-  mouseY,
-  depth,
-  index,
-  total
-}: {
-  task: Task;
-  mouseX: any;
-  mouseY: any;
-  depth: number;
-  index: number;
-  total: number;
-}) {
-  const multiplier = depth === 1 ? 0.03 : depth === 2 ? 0.015 : 0.008;
-
-  const x = useTransform(mouseX, (value) => value * multiplier);
-  const y = useTransform(mouseY, (value) => value * multiplier);
-
-  const yOffset = index * 120; // Stack cards vertically
-
-  return (
-    <motion.div
-      style={{
-        x,
-        y,
-        top: yOffset,
-        zIndex: 10 - depth,
-      }}
-      className="absolute left-0 right-0 mx-auto"
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: index * 0.1 }}
-    >
-      <TaskCard task={task} />
     </motion.div>
   );
 }
