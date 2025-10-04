@@ -23,21 +23,32 @@ export default function TaskCard({ task, onComplete, simple = false }: TaskCardP
     // Simple version for FOCUS mode
     return (
       <motion.div
-        className="flex items-center gap-3 p-4 bg-white/5 rounded-lg border border-white/10"
+        className="flex items-center gap-4 p-4 bg-white/10 border-2 border-white/20 cursor-pointer hover:bg-white/15 transition-colors"
         whileTap={{ scale: 0.98 }}
         onClick={handleTap}
       >
-        <div className={`w-6 h-6 rounded-full border-2 ${style.borderColor} ${task.completed ? style.bg : ''}`} />
-        <div className="flex-1">
-          <p className={`text-white ${task.completed ? 'line-through opacity-50' : ''}`}>
+        <div className={`w-8 h-8 border-4 flex items-center justify-center flex-shrink-0 ${
+          task.completed
+            ? `${style.bg} ${style.borderColor}`
+            : `bg-transparent border-white/40`
+        }`}>
+          {task.completed && (
+            <span className="text-white font-black text-lg">✓</span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className={`text-white font-bold ${task.completed ? 'line-through opacity-50' : ''}`}>
             {task.title}
           </p>
+          {task.description && (
+            <p className="text-white/50 text-sm font-medium truncate">{task.description}</p>
+          )}
           {task.time && (
-            <p className="text-white/40 text-sm">{task.time}</p>
+            <p className="text-white/60 text-sm font-bold mt-1">⏰ {task.time}</p>
           )}
         </div>
         {task.urgent && !task.completed && (
-          <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
+          <div className="w-4 h-4 bg-red-500 border-2 border-white flex-shrink-0 animate-pulse" />
         )}
       </motion.div>
     );

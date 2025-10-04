@@ -31,11 +31,11 @@ export default function FocusMode({ onToggleMode }: FocusModeProps) {
   }
 
   return (
-    <div className="min-h-screen p-6 md:p-12">
+    <div className="min-h-screen p-6 md:p-12 bg-[#2C3E50]">
       {/* Header */}
       <div className="max-w-2xl mx-auto mb-8">
         <motion.h1
-          className="text-4xl md:text-6xl font-bold text-white mb-4"
+          className="text-4xl md:text-6xl font-black text-white mb-4"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -44,13 +44,13 @@ export default function FocusMode({ onToggleMode }: FocusModeProps) {
 
         {/* Progress */}
         <div className="mb-6">
-          <div className="flex justify-between text-white/60 text-sm mb-2">
+          <div className="flex justify-between text-white/70 text-sm font-bold mb-2">
             <span>{completedCount} / {totalCount} klara</span>
             <span>{totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%</span>
           </div>
-          <div className="h-3 bg-white/10 rounded-full overflow-hidden">
+          <div className="h-4 bg-white/10 border-2 border-white/30 overflow-hidden">
             <motion.div
-              className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
+              className="h-full bg-[#87CEEB]"
               initial={{ width: 0 }}
               animate={{ width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%` }}
               transition={{ duration: 0.5 }}
@@ -64,52 +64,68 @@ export default function FocusMode({ onToggleMode }: FocusModeProps) {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              className={`px-4 py-2 border-2 text-sm font-black transition ${
                 filter === f
-                  ? 'bg-white text-black'
-                  : 'bg-white/10 text-white/60 hover:bg-white/20'
+                  ? 'bg-white text-[#2C3E50] border-white'
+                  : 'bg-transparent text-white border-white/30 hover:border-white/60'
               }`}
             >
-              {f === 'all' && 'Alla'}
-              {f === 'active' && 'Aktiva'}
-              {f === 'completed' && 'Klara'}
+              {f === 'all' && 'ALLA'}
+              {f === 'active' && 'AKTIVA'}
+              {f === 'completed' && 'KLARA'}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Task List */}
-      <div className="max-w-2xl mx-auto space-y-3">
-        <AnimatePresence>
-          {filteredTasks.map((task, index) => (
-            <motion.div
-              key={task.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <TaskCard
-                task={task}
-                simple
-                onComplete={markComplete}
-              />
-            </motion.div>
-          ))}
-        </AnimatePresence>
+      {/* Task List - Grouped by category */}
+      <div className="max-w-2xl mx-auto space-y-6">
+        {['jobb', 'familj', 'hälsa'].map(category => {
+          const categoryTasks = filteredTasks.filter(t => t.category === category);
+          if (categoryTasks.length === 0) return null;
+
+          return (
+            <div key={category}>
+              <h3 className="text-white font-black text-lg mb-3 uppercase">
+                {category === 'jobb' && '💼 Jobb'}
+                {category === 'familj' && '👨‍👩‍👧 Familj'}
+                {category === 'hälsa' && '💪 Hälsa'}
+              </h3>
+              <div className="space-y-2">
+                <AnimatePresence>
+                  {categoryTasks.map((task, index) => (
+                    <motion.div
+                      key={task.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <TaskCard
+                        task={task}
+                        simple
+                        onComplete={markComplete}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+          );
+        })}
 
         {/* Empty state */}
         {filteredTasks.length === 0 && (
-          <div className="text-center text-white/40 py-20">
-            <p className="text-2xl mb-2">
-              {filter === 'active' && '🎉 Inga aktiva uppgifter!'}
-              {filter === 'completed' && '📝 Inga klara uppgifter än'}
-              {filter === 'all' && '✨ Inga uppgifter idag'}
+          <div className="text-center text-white/50 py-20">
+            <p className="text-3xl font-black mb-2">
+              {filter === 'active' && '🎉 INGA AKTIVA UPPGIFTER!'}
+              {filter === 'completed' && '📝 INGA KLARA UPPGIFTER ÄN'}
+              {filter === 'all' && '✨ INGA UPPGIFTER IDAG'}
             </p>
-            <p className="text-sm">
-              {filter === 'active' && 'Bra jobbat!'}
-              {filter === 'completed' && 'Börja checka av saker'}
-              {filter === 'all' && 'Chill dag?'}
+            <p className="text-sm font-bold">
+              {filter === 'active' && 'BRA JOBBAT!'}
+              {filter === 'completed' && 'BÖRJA CHECKA AV SAKER'}
+              {filter === 'all' && 'CHILL DAG?'}
             </p>
           </div>
         )}
@@ -117,7 +133,7 @@ export default function FocusMode({ onToggleMode }: FocusModeProps) {
 
       {/* Add task button */}
       <motion.button
-        className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full shadow-lg flex items-center justify-center text-white text-3xl"
+        className="fixed bottom-20 right-8 w-14 h-14 bg-[#87CEEB] border-4 border-white shadow-lg flex items-center justify-center text-[#2C3E50] text-3xl font-black"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
       >
