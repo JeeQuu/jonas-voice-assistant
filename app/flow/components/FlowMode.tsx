@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import TaskCard from './TaskCard';
 import { useTasks } from '../hooks/useTasks';
+import { Category } from '../types';
 
 interface FlowModeProps {
   onToggleMode: () => void;
@@ -12,6 +13,7 @@ interface FlowModeProps {
 export default function FlowMode({ onToggleMode }: FlowModeProps) {
   const [currentDay, setCurrentDay] = useState(0); // -1 = yesterday, 0 = today, 1 = tomorrow
   const { tasks, loading } = useTasks(currentDay);
+  const [activeCategory, setActiveCategory] = useState<Category | null>(null);
 
   const handleSwipe = (direction: 'left' | 'right') => {
     if (direction === 'left' && currentDay < 1) {
@@ -38,6 +40,13 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
     });
   };
 
+  const getBackgroundColor = () => {
+    if (activeCategory === 'jobb') return '#FFB89D'; // Lighter warm orange
+    if (activeCategory === 'familj') return '#B4E4FF'; // Lighter sky blue
+    if (activeCategory === 'hälsa') return '#7C98B3'; // Lighter steel blue
+    return '#F5F5F5'; // Default off-white
+  };
+
 
   if (loading) {
     return (
@@ -49,16 +58,41 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
 
   return (
     <motion.div
-      className="min-h-screen p-6 md:p-12 overflow-hidden bg-[#F5F5F5]"
+      className="min-h-screen p-6 md:p-12 overflow-hidden relative"
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
       onDragEnd={(e, info) => {
         if (info.offset.x > 100) handleSwipe('right');
         if (info.offset.x < -100) handleSwipe('left');
       }}
+      animate={{ backgroundColor: getBackgroundColor() }}
+      transition={{ duration: 0.5 }}
     >
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none">
+        <motion.div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 35px,
+              rgba(0,0,0,0.1) 35px,
+              rgba(0,0,0,0.1) 70px
+            )`,
+          }}
+          animate={{
+            backgroundPosition: ['0px 0px', '100px 100px'],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: 'linear',
+          }}
+        />
+      </div>
       {/* Header - Clean geometric */}
-      <div className="text-center mb-12">
+      <div className="text-center mb-12 relative z-10">
         <motion.h1
           className="text-6xl md:text-8xl font-black text-[#2C3E50] mb-2"
           initial={{ opacity: 0, y: -20 }}
@@ -86,7 +120,7 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
       </div>
 
       {/* Tetris Grid - All cards visible side by side */}
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tasks.map((task, idx) => (
             <motion.div
@@ -94,6 +128,10 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
               initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
               animate={{ opacity: 1, scale: 1, rotate: 0 }}
               transition={{ delay: idx * 0.1 }}
+              onHoverStart={() => setActiveCategory(task.category)}
+              onHoverEnd={() => setActiveCategory(null)}
+              onTouchStart={() => setActiveCategory(task.category)}
+              onTouchEnd={() => setActiveCategory(null)}
             >
               <TaskCard task={task} />
             </motion.div>
