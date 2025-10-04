@@ -17,6 +17,13 @@ export function useTasks(dayOffset: number = 0) {
   const fetchTasks = async () => {
     setLoading(true);
 
+    // For now, use mock data until backend endpoints are deployed
+    console.log('Using mock data for day offset:', dayOffset);
+    setTasks(getMockTasks(dayOffset));
+    setLoading(false);
+
+    // TODO: Uncomment when backend endpoints are available on Render
+    /*
     try {
       const [todosRes, calendarRes] = await Promise.all([
         axios.get(`${API_URL}/api/memory-search-fixed`, {
@@ -69,11 +76,11 @@ export function useTasks(dayOffset: number = 0) {
       setTasks(allTasks);
     } catch (error) {
       console.error('Failed to fetch tasks:', error);
-      // Fallback to mock data if API fails
       setTasks(getMockTasks(dayOffset));
     } finally {
       setLoading(false);
     }
+    */
   };
 
   const markComplete = async (id: string) => {
