@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, Reorder } from 'framer-motion';
 import TaskCard from './TaskCard';
 import { useTasks } from '../hooks/useTasks';
 import { Category } from '../types';
@@ -15,6 +15,11 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
   const [currentDay, setCurrentDay] = useState(0); // -1 = yesterday, 0 = today, 1 = tomorrow
   const { tasks, loading } = useTasks(currentDay);
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
+  const [orderedTasks, setOrderedTasks] = useState<typeof tasks>([]);
+
+  useEffect(() => {
+    setOrderedTasks(tasks);
+  }, [tasks]);
 
   const handleSwipe = (direction: 'left' | 'right') => {
     if (direction === 'left' && currentDay < 1) {
@@ -184,12 +189,18 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
         </motion.p>
       </div>
 
-      {/* Tetris Grid - All cards visible side by side */}
+      {/* Tetris Grid - Draggable rearrange */}
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tasks.map((task, idx) => (
-            <motion.div
+        <Reorder.Group
+          axis="y"
+          values={orderedTasks}
+          onReorder={setOrderedTasks}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {orderedTasks.map((task, idx) => (
+            <Reorder.Item
               key={task.id}
+              value={task}
               initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
               animate={{ opacity: 1, scale: 1, rotate: 0 }}
               transition={{ delay: idx * 0.1 }}
@@ -204,11 +215,12 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
               }}
               onTouchEnd={() => setActiveCategory(null)}
               onClick={() => soundEffects.playClick(task.category)}
+              className="cursor-grab active:cursor-grabbing"
             >
               <TaskCard task={task} />
-            </motion.div>
+            </Reorder.Item>
           ))}
-        </div>
+        </Reorder.Group>
       </div>
 
       {/* Empty state */}

@@ -53,8 +53,8 @@ class SoundEffects {
 
     // Very subtle volume
     gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.08, this.audioContext.currentTime + 0.02);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+    gainNode.gain.linearRampToValueAtTime(0.02, this.audioContext.currentTime + 0.02);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.3);
 
     // Mix wet/dry for reverb
     wetGain.gain.value = 0.4;
@@ -91,8 +91,8 @@ class SoundEffects {
     oscillator.frequency.setValueAtTime(frequencies[category], this.audioContext.currentTime);
 
     // Quick pluck sound
-    gainNode.gain.setValueAtTime(0.15, this.audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+    gainNode.gain.setValueAtTime(0.04, this.audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.2);
 
     wetGain.gain.value = 0.5;
 
@@ -118,8 +118,8 @@ class SoundEffects {
     oscillator.frequency.setValueAtTime(200, this.audioContext.currentTime);
     oscillator.frequency.linearRampToValueAtTime(400, this.audioContext.currentTime + 0.15);
 
-    gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.15);
+    gainNode.gain.setValueAtTime(0.03, this.audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.15);
 
     wetGain.gain.value = 0.6;
 
