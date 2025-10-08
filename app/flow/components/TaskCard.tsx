@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Task } from '../types';
 import { getCategoryStyle } from '../utils/categoryStyles';
 
@@ -12,6 +12,38 @@ interface TaskCardProps {
 
 export default function TaskCard({ task, onComplete, simple = false }: TaskCardProps) {
   const style = getCategoryStyle(task.category);
+
+  // 3D tilt effect based on mouse position
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const mouseXSpring = useSpring(x);
+  const mouseYSpring = useSpring(y);
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ['12deg', '-12deg']);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-12deg', '12deg']);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (simple) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
 
   const handleTap = () => {
     if (onComplete) {
@@ -54,20 +86,20 @@ export default function TaskCard({ task, onComplete, simple = false }: TaskCardP
     );
   }
 
-  // Full FLOW mode card - 3D-enhanced flat design
+  // Full FLOW mode card - 3D-enhanced flat design with mouse-tracking tilt
   return (
     <motion.div
-      className="relative cursor-pointer h-full perspective-1000"
+      className="relative cursor-pointer h-full"
       onClick={handleTap}
-      whileHover={{
-        scale: 1.05,
-        rotateX: 2,
-        rotateY: 2,
-        transition: { duration: 0.2 }
-      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       style={{
+        rotateX,
+        rotateY,
         transformStyle: 'preserve-3d',
+        perspective: 1000,
       }}
     >
       <div
