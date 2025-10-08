@@ -54,19 +54,27 @@ export default function TaskCard({ task, onComplete, simple = false }: TaskCardP
     );
   }
 
-  // Full FLOW mode card - Flat tetris block style
+  // Full FLOW mode card - 3D-enhanced flat design
   return (
-    <div
-      className="relative cursor-pointer h-full transition-transform duration-150 active:scale-95 hover:scale-[1.02] will-change-transform"
+    <motion.div
+      className="relative cursor-pointer h-full perspective-1000"
       onClick={handleTap}
+      whileHover={{
+        scale: 1.05,
+        rotateX: 2,
+        rotateY: 2,
+        transition: { duration: 0.2 }
+      }}
+      whileTap={{ scale: 0.95 }}
       style={{
-        transform: 'translate3d(0,0,0)', // GPU acceleration
+        transformStyle: 'preserve-3d',
       }}
     >
       <div
-        className={`relative p-5 ${style.bg} border-4 ${style.borderColor} overflow-hidden h-full flex flex-col transition-shadow duration-150`}
+        className={`relative p-5 ${style.bg} border-4 ${style.borderColor} overflow-hidden h-full flex flex-col transition-all duration-300`}
         style={{
-          boxShadow: '6px 6px 0px rgba(0,0,0,0.3)',
+          boxShadow: '8px 8px 0px rgba(0,0,0,0.15), 12px 12px 20px rgba(0,0,0,0.1)',
+          transform: 'translateZ(20px)',
         }}
       >
         {/* BIG Geometric Pattern - covers whole card */}
@@ -126,6 +134,6 @@ export default function TaskCard({ task, onComplete, simple = false }: TaskCardP
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

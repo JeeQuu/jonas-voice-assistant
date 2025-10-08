@@ -68,29 +68,37 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
       animate={{ backgroundColor: getBackgroundColor() }}
       transition={{ duration: 0.5 }}
     >
-      {/* CSS-animated background - GPU accelerated */}
-      <div className="absolute inset-0 opacity-15 pointer-events-none overflow-hidden">
-        <div className="absolute w-96 h-96 rounded-full opacity-20 animate-float-slow"
+      {/* 3D Grid Background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `
+              linear-gradient(90deg, rgba(44,62,80,0.1) 1px, transparent 1px),
+              linear-gradient(0deg, rgba(44,62,80,0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+            transform: 'perspective(800px) rotateX(60deg) scale(2)',
+            transformOrigin: 'center center',
+          }}
+        />
+      </div>
+
+      {/* Floating depth layers */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none overflow-hidden">
+        <div className="absolute w-96 h-96 rounded-full opacity-30 animate-float-slow"
              style={{
-               background: 'radial-gradient(circle, rgba(0,0,0,0.3) 0%, transparent 70%)',
+               background: 'radial-gradient(circle, rgba(44,62,80,0.4) 0%, transparent 70%)',
                left: '10%',
                top: '20%',
-               transform: 'translate3d(0,0,0)', // GPU acceleration
-             }}
-        />
-        <div className="absolute w-64 h-64 rounded-full opacity-15 animate-float-medium"
-             style={{
-               background: 'radial-gradient(circle, rgba(0,0,0,0.2) 0%, transparent 70%)',
-               right: '15%',
-               top: '40%',
                transform: 'translate3d(0,0,0)',
              }}
         />
-        <div className="absolute w-80 h-80 rounded-full opacity-18 animate-float-fast"
+        <div className="absolute w-80 h-80 opacity-20 animate-float-medium"
              style={{
-               background: 'radial-gradient(circle, rgba(0,0,0,0.25) 0%, transparent 70%)',
-               left: '50%',
-               bottom: '20%',
+               background: 'radial-gradient(circle, rgba(44,62,80,0.3) 0%, transparent 70%)',
+               right: '15%',
+               top: '40%',
                transform: 'translate3d(0,0,0)',
              }}
         />
@@ -99,24 +107,17 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
       <style jsx>{`
         @keyframes float-slow {
           0%, 100% { transform: translate3d(0, 0, 0); }
-          50% { transform: translate3d(80px, -60px, 0); }
+          50% { transform: translate3d(60px, -40px, 0); }
         }
         @keyframes float-medium {
           0%, 100% { transform: translate3d(0, 0, 0); }
-          50% { transform: translate3d(-50px, 80px, 0); }
-        }
-        @keyframes float-fast {
-          0%, 100% { transform: translate3d(0, 0, 0); }
-          50% { transform: translate3d(-70px, -50px, 0); }
+          50% { transform: translate3d(-40px, 60px, 0); }
         }
         .animate-float-slow {
-          animation: float-slow 20s ease-in-out infinite;
+          animation: float-slow 25s ease-in-out infinite;
         }
         .animate-float-medium {
-          animation: float-medium 15s ease-in-out infinite;
-        }
-        .animate-float-fast {
-          animation: float-fast 18s ease-in-out infinite;
+          animation: float-medium 20s ease-in-out infinite;
         }
       `}</style>
       {/* Header - Clean geometric */}
@@ -147,23 +148,45 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
         </motion.p>
       </div>
 
-      {/* Tetris Grid - Simple and fast */}
-      <div className="max-w-7xl mx-auto relative z-10">
+      {/* 3D Grid with depth layers */}
+      <div className="max-w-7xl mx-auto relative z-10" style={{ perspective: '1200px' }}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tasks.map((task, idx) => (
-            <motion.div
-              key={task.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: idx * 0.05, duration: 0.2 }}
-              onHoverStart={() => setActiveCategory(task.category)}
-              onHoverEnd={() => setActiveCategory(null)}
-              onTouchStart={() => setActiveCategory(task.category)}
-              onTouchEnd={() => setActiveCategory(null)}
-            >
-              <TaskCard task={task} />
-            </motion.div>
-          ))}
+          {tasks.map((task, idx) => {
+            // Depth based on category: jobb (front), familj (mid), hälsa (back)
+            const depth = task.category === 'jobb' ? 40 : task.category === 'familj' ? 20 : 0;
+
+            // Subtle floating per card
+            const floatOffset = idx * 2; // Offset animation per card
+
+            return (
+              <motion.div
+                key={task.id}
+                initial={{ opacity: 0, y: 20, z: -50 }}
+                animate={{
+                  opacity: 1,
+                  y: [0, -8, 0], // Continuous gentle float
+                  z: depth,
+                }}
+                transition={{
+                  opacity: { delay: idx * 0.08, duration: 0.4 },
+                  y: {
+                    delay: floatOffset,
+                    duration: 3 + (idx % 3), // Varied duration per card
+                    repeat: Infinity,
+                    ease: 'easeInOut'
+                  },
+                  z: { delay: idx * 0.08, duration: 0.4, type: 'spring', stiffness: 100 }
+                }}
+                onHoverStart={() => setActiveCategory(task.category)}
+                onHoverEnd={() => setActiveCategory(null)}
+                onTouchStart={() => setActiveCategory(task.category)}
+                onTouchEnd={() => setActiveCategory(null)}
+                style={{ transformStyle: 'preserve-3d' }}
+              >
+                <TaskCard task={task} />
+              </motion.div>
+            );
+          })}
         </div>
       </div>
 
