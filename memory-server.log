@@ -1,7 +1,0 @@
-
-🧠 Memory API Server running on http://localhost:3001
-📚 Endpoints:
-  - GET  http://localhost:3001/api/memory-search
-  - POST http://localhost:3001/api/memory-store
-  - GET  http://localhost:3001/api/health
-

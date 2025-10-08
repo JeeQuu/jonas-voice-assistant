@@ -17,20 +17,13 @@ export function useTasks(dayOffset: number = 0) {
   const fetchTasks = async () => {
     setLoading(true);
 
-    // For now, use mock data until backend endpoints are deployed
-    console.log('Using mock data for day offset:', dayOffset);
-    setTasks(getMockTasks(dayOffset));
-    setLoading(false);
-
-    // TODO: Uncomment when backend endpoints are available on Render
-    /*
     try {
       const [todosRes, calendarRes] = await Promise.all([
-        axios.get(`${API_URL}/api/memory-search-fixed`, {
+        axios.get(`${API_URL}/api/memory-search`, {
           params: { q: 'todo', smart: true, limit: 20 },
           headers: { 'x-api-key': API_KEY }
         }),
-        axios.get(`${API_URL}/api/calendar-events`, {
+        axios.get(`${API_URL}/api/calendar/events`, {
           params: { days: 7 },
           headers: { 'x-api-key': API_KEY }
         })
@@ -46,7 +39,7 @@ export function useTasks(dayOffset: number = 0) {
         progress: 0
       }));
 
-      const calendarTasks: Task[] = (calendarRes.data || [])
+      const calendarTasks: Task[] = (calendarRes.data.events || [])
         .filter((event: any) => {
           const eventDate = new Date(event.start?.dateTime || event.start?.date);
           const targetDate = new Date();
@@ -80,7 +73,6 @@ export function useTasks(dayOffset: number = 0) {
     } finally {
       setLoading(false);
     }
-    */
   };
 
   const markComplete = async (id: string) => {
