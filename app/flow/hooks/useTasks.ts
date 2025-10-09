@@ -47,16 +47,16 @@ export function useTasks(dayOffset: number = 0) {
 
       const calendarTasks: Task[] = (calendarRes.data.events || [])
         .filter((event: any) => {
-          const eventDate = new Date(event.start?.dateTime || event.start?.date);
+          const eventDate = new Date(event.start);
           const targetDate = new Date();
           targetDate.setDate(targetDate.getDate() + dayOffset);
           return eventDate.toDateString() === targetDate.toDateString();
         })
         .map((event: any) => ({
           id: event.id || Math.random().toString(),
-          title: event.summary || 'Event',
+          title: event.title || event.summary || 'Event',
           description: event.description,
-          time: new Date(event.start?.dateTime || event.start?.date).toLocaleTimeString('sv-SE', {
+          time: new Date(event.start).toLocaleTimeString('sv-SE', {
             hour: '2-digit',
             minute: '2-digit'
           }),
