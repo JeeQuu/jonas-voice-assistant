@@ -31,11 +31,11 @@ export function useTasks(dayOffset: number = 0) {
 
       const todoTasks: Task[] = (todosRes.data.todos || []).map((item: any) => ({
         id: item.id || Math.random().toString(),
-        title: item.title || item.content?.substring(0, 50) || 'Untitled',
-        description: item.content,
+        title: item.summary || item.full_content?.substring(0, 50) || 'Untitled',
+        description: item.full_content,
         category: getCategory(item),
         completed: !!item.completed_at,
-        urgent: item.importance >= 4,
+        urgent: item.importance_level >= 4,
         progress: item.completed_at ? 100 : 0,
         dueDate: item.deadline,
         time: item.deadline ? new Date(item.deadline).toLocaleTimeString('sv-SE', {
