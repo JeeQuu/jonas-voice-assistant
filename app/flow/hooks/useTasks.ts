@@ -19,8 +19,8 @@ export function useTasks(dayOffset: number = 0) {
 
     try {
       const [todosRes, calendarRes] = await Promise.all([
-        axios.get(`${API_URL}/api/memory-search`, {
-          params: { q: 'todo', smart: true, limit: 20 },
+        axios.get(`${API_URL}/api/todos`, {
+          params: { status: 'pending' }, // Only get incomplete todos
           headers: { 'x-api-key': API_KEY }
         }),
         axios.get(`${API_URL}/api/calendar/events`, {
@@ -29,14 +29,19 @@ export function useTasks(dayOffset: number = 0) {
         })
       ]);
 
-      const todoTasks: Task[] = (todosRes.data.results || []).map((item: any) => ({
+      const todoTasks: Task[] = (todosRes.data.todos || []).map((item: any) => ({
         id: item.id || Math.random().toString(),
         title: item.title || item.content?.substring(0, 50) || 'Untitled',
         description: item.content,
         category: getCategory(item),
-        completed: false,
+        completed: !!item.completed_at,
         urgent: item.importance >= 4,
-        progress: 0
+        progress: item.completed_at ? 100 : 0,
+        dueDate: item.deadline,
+        time: item.deadline ? new Date(item.deadline).toLocaleTimeString('sv-SE', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }) : undefined
       }));
 
       const calendarTasks: Task[] = (calendarRes.data.events || [])
@@ -76,13 +81,28 @@ export function useTasks(dayOffset: number = 0) {
   };
 
   const markComplete = async (id: string) => {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+
     // Optimistic update
     setTasks(tasks.map(t =>
-      t.id === id ? { ...t, completed: !t.completed } : t
+      t.id === id ? { ...t, completed: !t.completed, progress: !t.completed ? 100 : 0 } : t
     ));
 
-    // TODO: Persist to API
-    // await axios.post(`${API_URL}/api/memory-store`, ...);
+    try {
+      // Persist to API
+      await axios.patch(
+        `${API_URL}/api/todos/${id}`,
+        { completed: !task.completed },
+        { headers: { 'x-api-key': API_KEY } }
+      );
+    } catch (error) {
+      console.error('Failed to update todo:', error);
+      // Revert on error
+      setTasks(tasks.map(t =>
+        t.id === id ? { ...t, completed: task.completed } : t
+      ));
+    }
   };
 
   return { tasks, loading, fetchTasks, markComplete };
