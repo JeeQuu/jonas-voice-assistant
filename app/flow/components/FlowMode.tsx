@@ -162,7 +162,7 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
       </div>
 
       {/* 3D Grid with depth layers */}
-      <div className="max-w-7xl mx-auto relative z-10" style={{ perspective: '1200px' }}>
+      <div className="max-w-7xl mx-auto relative z-10 pb-32" style={{ perspective: '1200px' }}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tasks.map((task, idx) => {
             // Depth based on category: jobb (front), familj (mid), hälsa (back)
