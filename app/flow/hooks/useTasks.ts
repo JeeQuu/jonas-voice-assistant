@@ -3,8 +3,9 @@ import axios from 'axios';
 import { Task } from '../types';
 import { getCategory } from '../utils/categoryStyles';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://quant-show-api.onrender.com';
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY || 'JeeQuuFjong';
+// Always use production API (deployed on Render)
+const API_URL = 'https://quant-show-api.onrender.com';
+const API_KEY = 'JeeQuuFjong';
 
 export function useTasks(dayOffset: number = 0) {
   const [tasks, setTasks] = useState<Task[]>([]);
