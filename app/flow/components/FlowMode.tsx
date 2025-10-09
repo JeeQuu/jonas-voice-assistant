@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import TaskCard from './TaskCard';
 import { useTasks } from '../hooks/useTasks';
 import { Category } from '../types';
+import { DailyBriefing } from './DailyBriefing';
 
 interface FlowModeProps {
   onToggleMode: () => void;
@@ -146,6 +147,18 @@ export default function FlowMode({ onToggleMode }: FlowModeProps) {
           {currentDay > -1 && 'SWIPE IGÅR '}
           {currentDay < 1 && ' SWIPE IMORGON'}
         </motion.p>
+
+        {/* Daily Briefing Button - Only show for today */}
+        {currentDay === 0 && (
+          <motion.div
+            className="mt-6 flex justify-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <DailyBriefing tasks={tasks} />
+          </motion.div>
+        )}
       </div>
 
       {/* 3D Grid with depth layers */}
