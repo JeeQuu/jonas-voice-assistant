@@ -64,7 +64,8 @@ export function DailyBriefing({ tasks }: DailyBriefingProps) {
           context.calendarEvents.slice(0, 3).forEach((event: any) => {
             const time = new Date(event.start).toLocaleTimeString('sv-SE', {
               hour: '2-digit',
-              minute: '2-digit'
+              minute: '2-digit',
+              timeZone: 'Europe/Stockholm'
             });
             briefing += `Klockan ${time}, ${event.title}. `;
           });
