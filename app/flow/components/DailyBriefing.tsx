@@ -15,73 +15,115 @@ export function DailyBriefing({ tasks }: DailyBriefingProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const generateBriefingText = () => {
+  const generateBriefingText = async () => {
     const now = new Date();
     const greeting = now.getHours() < 12 ? 'God morgon' : now.getHours() < 18 ? 'God dag' : 'God kväll';
 
-    const urgentTasks = tasks.filter(t => t.urgent);
-    const scheduledTasks = tasks.filter(t => t.time).sort((a, b) => {
-      if (!a.time || !b.time) return 0;
-      return a.time.localeCompare(b.time);
-    });
+    try {
+      // Hämta AI-driven daglig kontext
+      const response = await fetch('https://quant-show-api.onrender.com/api/daily-context', {
+        headers: {
+          'x-api-key': 'JeeQuuFjong'
+        }
+      });
 
-    let briefing = `${greeting} Jonas! `;
+      if (!response.ok) throw new Error('Failed to fetch daily context');
 
-    if (tasks.length === 0) {
-      briefing += 'Du har inga planerade aktiviteter idag. En lugn dag att njuta av!';
+      const { context } = await response.json();
+
+      // Bygg intelligent briefing från AI insights
+      let briefing = `${greeting} Jonas! `;
+
+      if (context.insights?.summary) {
+        // Använd AI-genererad sammanfattning
+        briefing += context.insights.summary;
+      } else {
+        // Fallback till enkel briefing
+        briefing += 'Här är din dagliga briefing. ';
+
+        // Brådskande åtgärder
+        if (context.insights?.urgentActions?.length > 0) {
+          const urgent = context.insights.urgentActions;
+          briefing += `Du har ${urgent.length} brådskande ${urgent.length === 1 ? 'sak' : 'saker'}. `;
+
+          urgent.slice(0, 3).forEach((action: any) => {
+            if (action.type === 'upcoming_event') {
+              briefing += `${action.title} börjar om ${action.minutesRemaining} minuter. `;
+            } else if (action.type === 'deadline') {
+              briefing += `${action.title} har deadline om ${action.hoursRemaining} timmar. `;
+            } else if (action.type === 'important_email') {
+              briefing += `Viktigt mail från ${action.from}: ${action.subject}. `;
+            }
+          });
+        }
+
+        // Dagens kalenderevent
+        if (context.calendarEvents?.length > 0) {
+          briefing += `Idag har du ${context.calendarEvents.length} inplanerade ${context.calendarEvents.length === 1 ? 'aktivitet' : 'aktiviteter'}. `;
+
+          context.calendarEvents.slice(0, 3).forEach((event: any) => {
+            const time = new Date(event.start).toLocaleTimeString('sv-SE', {
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            briefing += `Klockan ${time}, ${event.title}. `;
+          });
+        }
+
+        // Samband och insights
+        if (context.insights?.connections?.length > 0) {
+          const conn = context.insights.connections[0];
+          if (conn.type === 'email_to_calendar') {
+            briefing += `Jag ser att du har fått mail om ${conn.email} som kopplar till ${conn.event}. `;
+          }
+        }
+      }
+
+      briefing += ' Ha en fantastisk dag!';
+      return briefing;
+
+    } catch (error) {
+      console.error('Failed to generate AI briefing:', error);
+
+      // Fallback till grundläggande briefing
+      const urgentTasks = tasks.filter(t => t.urgent);
+      const scheduledTasks = tasks.filter(t => t.time).sort((a, b) => {
+        if (!a.time || !b.time) return 0;
+        return a.time.localeCompare(b.time);
+      });
+
+      let briefing = `${greeting} Jonas! `;
+
+      if (tasks.length === 0) {
+        briefing += 'Du har inga planerade aktiviteter idag. En lugn dag att njuta av!';
+        return briefing;
+      }
+
+      briefing += 'Här är din dagliga briefing. ';
+
+      if (urgentTasks.length > 0) {
+        briefing += `Du har ${urgentTasks.length} brådskande ${urgentTasks.length === 1 ? 'uppgift' : 'uppgifter'}. `;
+        urgentTasks.slice(0, 3).forEach(task => {
+          briefing += `${task.title}${task.time ? ` klockan ${task.time}` : ''}. `;
+        });
+      }
+
+      if (scheduledTasks.length > 0) {
+        briefing += `Idag har du ${scheduledTasks.length} inplanerade ${scheduledTasks.length === 1 ? 'aktivitet' : 'aktiviteter'}. `;
+        scheduledTasks.slice(0, 5).forEach(task => {
+          briefing += `Klockan ${task.time}, ${task.title}. `;
+        });
+      }
+
+      briefing += 'Ha en fantastisk dag!';
       return briefing;
     }
-
-    briefing += `Här är din dagliga briefing. `;
-
-    // Urgent items first
-    if (urgentTasks.length > 0) {
-      briefing += `Du har ${urgentTasks.length} brådskande ${urgentTasks.length === 1 ? 'uppgift' : 'uppgifter'}. `;
-      urgentTasks.slice(0, 3).forEach(task => {
-        briefing += `${task.title}${task.time ? ` klockan ${task.time}` : ''}. `;
-      });
-    }
-
-    // Scheduled events
-    if (scheduledTasks.length > 0) {
-      briefing += `Idag har du ${scheduledTasks.length} inplanerade ${scheduledTasks.length === 1 ? 'aktivitet' : 'aktiviteter'}. `;
-
-      scheduledTasks.slice(0, 5).forEach(task => {
-        briefing += `Klockan ${task.time}, ${task.title}. `;
-      });
-    }
-
-    // Summary by category
-    const categories = tasks.reduce((acc, task) => {
-      acc[task.category] = (acc[task.category] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    const categoryNames: Record<string, string> = {
-      jobb: 'jobb',
-      familj: 'familj',
-      hälsa: 'hälsa',
-      projekt: 'projekt'
-    };
-
-    const categorySummary = Object.entries(categories)
-      .filter(([cat]) => categoryNames[cat])
-      .map(([cat, count]) => `${count} ${categoryNames[cat]}`)
-      .join(', ');
-
-    if (categorySummary) {
-      briefing += `Totalt handlar det om ${categorySummary}. `;
-    }
-
-    briefing += 'Ha en fantastisk dag!';
-
-    return briefing;
   };
 
   const playBriefing = async () => {
     setIsLoading(true);
     try {
-      const briefingText = generateBriefingText();
+      const briefingText = await generateBriefingText();
 
       // Call API to generate audio
       const response = await fetch('https://quant-show-api.onrender.com/api/text-to-speech', {
