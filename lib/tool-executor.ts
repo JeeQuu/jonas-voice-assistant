@@ -57,10 +57,18 @@ export async function executeTool(toolName: string, params: any): Promise<any> {
 
     // ===== CALENDAR =====
     if (toolName === 'get_calendar_events') {
+      // Smart defaults: if timeMin/timeMax not specified, look 60 days ahead
+      const now = new Date();
+      const defaultTimeMin = params.timeMin || now.toISOString();
+
+      const sixtyDaysFromNow = new Date();
+      sixtyDaysFromNow.setDate(now.getDate() + 60);
+      const defaultTimeMax = params.timeMax || sixtyDaysFromNow.toISOString();
+
       return await callBackend('/api/calendar/events', 'GET', {
-        timeMin: params.timeMin,
-        timeMax: params.timeMax,
-        maxResults: params.maxResults || 10
+        timeMin: defaultTimeMin,
+        timeMax: defaultTimeMax,
+        maxResults: params.maxResults || 20
       });
     }
 
