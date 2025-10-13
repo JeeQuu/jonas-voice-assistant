@@ -1,318 +1,131 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
+import Link from 'next/link';
 
-export default function Home() {
-  const [isRecording, setIsRecording] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const [response, setResponse] = useState('');
-  const [messages, setMessages] = useState<Array<{role: string, content: string}>>([]);
-  const [memories, setMemories] = useState<any[]>([]);
-  const [textInput, setTextInput] = useState('');
-  
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-
-  // Initialize media recorder
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          const mediaRecorder = new MediaRecorder(stream);
-          mediaRecorderRef.current = mediaRecorder;
-          
-          mediaRecorder.ondataavailable = (event) => {
-            audioChunksRef.current.push(event.data);
-          };
-          
-          mediaRecorder.onstop = async () => {
-            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm;codecs=opus' });
-            audioChunksRef.current = [];
-            await processAudio(audioBlob);
-          };
-        })
-        .catch(err => console.error('Microphone access denied:', err));
-    }
-  }, []);
-
-  const startRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'inactive') {
-      audioChunksRef.current = [];
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
-      setTranscript('');
-      setResponse('');
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      setIsProcessing(true);
-    }
-  };
-
-  const processText = async (text: string) => {
-    if (!text.trim()) return;
-
-    setIsProcessing(true);
-    setTextInput('');
-
-    try {
-      // Use text-process for full AI capabilities
-      const result = await fetch('/api/text-process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
-      });
-      
-      const data = await result.json();
-      
-      if (data.transcript) {
-        setTranscript(data.transcript);
-        setMessages(prev => [...prev, { role: 'user', content: data.transcript }]);
-      }
-      
-      if (data.response) {
-        setResponse(data.response);
-        setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-      }
-      
-      if (data.memories) {
-        setMemories(data.memories);
-      }
-      
-      // Play audio response if available
-      if (data.audioUrl) {
-        const audio = new Audio(data.audioUrl);
-        audio.play();
-      }
-    } catch (error) {
-      console.error('Error processing text:', error);
-      setResponse('Ett fel uppstod. Kontrollera att alla API-nycklar är konfigurerade.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const processAudio = async (audioBlob: Blob) => {
-    try {
-      // Send audio to API
-      const formData = new FormData();
-      // Rename to .opus for better Whisper support
-      formData.append('audio', audioBlob, 'recording.opus');
-      
-      // Send to simple endpoint for now (voice-process has issues)
-      const result = await fetch('/api/voice-simple', {
-        method: 'POST',
-        body: formData
-      });
-      
-      const data = await result.json();
-      
-      if (data.transcript) {
-        setTranscript(data.transcript);
-        setMessages(prev => [...prev, { role: 'user', content: data.transcript }]);
-      }
-      
-      if (data.response) {
-        setResponse(data.response);
-        setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-      }
-      
-      if (data.memories) {
-        setMemories(data.memories);
-      }
-      
-      // Play audio response if available
-      if (data.audioUrl) {
-        const audio = new Audio(data.audioUrl);
-        audio.play();
-      }
-      
-    } catch (error) {
-      console.error('Error processing audio:', error);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const searchMemory = async (query: string) => {
-    try {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/memory-search`,
-        {
-          params: { q: query, smart: true },
-          headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY }
-        }
-      );
-      setMemories(res.data.results || []);
-    } catch (error) {
-      console.error('Memory search failed:', error);
-    }
-  };
-
+export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-            Jonas AI Assistant
+    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
+      <div className="container mx-auto px-4 py-16 flex flex-col items-center justify-center min-h-screen">
+
+        {/* Hero Section */}
+        <div className="text-center mb-16 max-w-4xl">
+          <h1 className="text-7xl font-black mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            Jonas AI
           </h1>
-          <p className="text-gray-400">Powered by your smart memory system</p>
+          <p className="text-2xl text-gray-300 mb-4">
+            Din personliga AI-assistent med 30 integrerade operationer
+          </p>
+          <p className="text-lg text-gray-400">
+            Powered by Claude 3.5 Sonnet & Brainolf 2.0
+          </p>
         </div>
 
-        {/* Text Input (primary input method) */}
-        <div className="mb-8 bg-blue-900/20 p-6 rounded-lg border border-blue-500/30">
-          <h3 className="text-lg font-semibold mb-4 text-blue-300">💬 Chatta med Jonas AI</h3>
-          <form onSubmit={(e) => { e.preventDefault(); processText(textInput); }} className="flex gap-2">
-            <input
-              type="text"
-              value={textInput}
-              onChange={(e) => setTextInput(e.target.value)}
-              placeholder="Skriv ditt meddelande här..."
-              className="flex-1 p-3 bg-gray-800 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none text-lg"
-              disabled={isProcessing}
-              autoFocus
-            />
-            <button
-              type="submit"
-              disabled={isProcessing || !textInput.trim()}
-              className="px-8 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
+        {/* Main Navigation Cards */}
+        <div className="grid md:grid-cols-2 gap-8 max-w-5xl w-full mb-16">
+
+          {/* Chat Card */}
+          <Link
+            href="/chat"
+            className="group relative bg-gradient-to-br from-blue-600 to-purple-600 p-8 rounded-2xl border-4 border-white/20 hover:border-white/40 transition-all hover:scale-105 hover:shadow-2xl"
+          >
+            <div className="text-6xl mb-4">💬</div>
+            <h2 className="text-3xl font-black mb-3">CHAT</h2>
+            <p className="text-blue-100 mb-4">
+              Din huvudassistent med full tillgång till alla dina verktyg
+            </p>
+            <ul className="text-sm text-blue-200 space-y-2">
+              <li>✓ Gmail & Kalender</li>
+              <li>✓ Kvitton & Ekonomi</li>
+              <li>✓ Todos & Smartminne</li>
+              <li>✓ Dropbox & Prenumerationer</li>
+              <li>✓ Brainolf 2.0 Personlighet</li>
+            </ul>
+            <div className="absolute bottom-4 right-4 text-white/50 group-hover:text-white transition-colors">
+              →
+            </div>
+          </Link>
+
+          {/* Flow Card */}
+          <Link
+            href="/flow"
+            className="group relative bg-gradient-to-br from-purple-600 to-pink-600 p-8 rounded-2xl border-4 border-white/20 hover:border-white/40 transition-all hover:scale-105 hover:shadow-2xl"
+          >
+            <div className="text-6xl mb-4">🧘</div>
+            <h2 className="text-3xl font-black mb-3">FLOW</h2>
+            <p className="text-purple-100 mb-4">
+              ADHD-vänlig översikt med zen-vibes för fokus & kreativitet
+            </p>
+            <ul className="text-sm text-purple-200 space-y-2">
+              <li>✓ FLOW & FOCUS modes</li>
+              <li>✓ Zen meditation musik</li>
+              <li>✓ Morning meditation</li>
+              <li>✓ Visuell task overview</li>
+              <li>✓ Minimal distractions</li>
+            </ul>
+            <div className="absolute bottom-4 right-4 text-white/50 group-hover:text-white transition-colors">
+              →
+            </div>
+          </Link>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl w-full mb-12">
+          <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20 text-center">
+            <div className="text-3xl font-black text-blue-400">30</div>
+            <div className="text-sm text-gray-300">Operationer</div>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20 text-center">
+            <div className="text-3xl font-black text-purple-400">24/7</div>
+            <div className="text-sm text-gray-300">Tillgänglig</div>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20 text-center">
+            <div className="text-3xl font-black text-pink-400">AI</div>
+            <div className="text-sm text-gray-300">Claude 3.5</div>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20 text-center">
+            <div className="text-3xl font-black text-green-400">✓</div>
+            <div className="text-sm text-gray-300">Mobil-ready</div>
+          </div>
+        </div>
+
+        {/* Features Grid */}
+        <div className="max-w-6xl w-full mb-12">
+          <h3 className="text-2xl font-bold text-center mb-8 text-gray-200">Vad kan jag hjälpa dig med?</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { icon: '📧', label: 'Gmail' },
+              { icon: '📅', label: 'Kalender' },
+              { icon: '✅', label: 'Todos' },
+              { icon: '🧠', label: 'Minne' },
+              { icon: '💰', label: 'Kvitton' },
+              { icon: '💳', label: 'Prenumerationer' },
+              { icon: '📁', label: 'Dropbox' },
+              { icon: '📊', label: 'Analytics' },
+            ].map((item, idx) => (
+              <div
+                key={idx}
+                className="bg-white/5 backdrop-blur-sm p-4 rounded-lg border border-white/10 text-center hover:bg-white/10 transition-colors"
+              >
+                <div className="text-3xl mb-2">{item.icon}</div>
+                <div className="text-sm text-gray-300">{item.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center text-gray-400 text-sm">
+          <p>Maintained by Jonas Quant • Powered by Anthropic Claude</p>
+          <p className="mt-2">
+            <a
+              href="https://github.com/jonasquant"
+              className="hover:text-white transition-colors"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              Skicka
-            </button>
-          </form>
-        </div>
-
-        {/* Voice Control (secondary - has issues) */}
-        <div className="flex justify-center mb-8 opacity-50">
-          <button
-            onClick={isRecording ? stopRecording : startRecording}
-            disabled={isProcessing}
-            className={`
-              relative p-8 rounded-full transition-all duration-300 transform
-              ${isRecording 
-                ? 'bg-red-500 hover:bg-red-600 scale-110 animate-pulse' 
-                : 'bg-blue-500 hover:bg-blue-600 hover:scale-105'}
-              ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
-            `}
-          >
-            <div className="flex items-center justify-center">
-              {isProcessing ? (
-                <svg className="animate-spin h-8 w-8" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              ) : (
-                <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 24 24">
-                  <path d={isRecording 
-                    ? "M6 19h4V5H6v14zm8-14v14h4V5h-4z" // Pause icon
-                    : "M12 14c1.66 0 3-1.34 3-3l0-6c0-1.66-1.34-3-3-3S9 3.34 9 5l0 6C9 12.66 10.34 14 12 14zM17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92H17z"} // Mic icon
-                  />
-                </svg>
-              )}
-            </div>
-          </button>
-        </div>
-
-        {/* Status */}
-        <div className="text-center mb-8">
-          {isRecording && (
-            <p className="text-red-400 animate-pulse">🔴 Recording...</p>
-          )}
-          {isProcessing && (
-            <p className="text-blue-400">Processing...</p>
-          )}
-        </div>
-
-
-        {/* Transcript */}
-        {transcript && (
-          <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
-            <h3 className="text-sm text-gray-400 mb-2">You said:</h3>
-            <p className="text-lg">{transcript}</p>
-          </div>
-        )}
-
-        {/* Response */}
-        {response && (
-          <div className="mb-6 p-4 bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg border border-blue-500/30">
-            <h3 className="text-sm text-gray-400 mb-2">Jonas AI:</h3>
-            <p className="text-lg">{response}</p>
-          </div>
-        )}
-
-        {/* Relevant Memories */}
-        {memories.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-sm text-gray-400 mb-3">Related memories:</h3>
-            <div className="space-y-2">
-              {memories.slice(0, 3).map((memory, idx) => (
-                <div key={idx} className="p-3 bg-gray-800/50 rounded border border-gray-700/50">
-                  <p className="text-sm text-gray-300">
-                    {memory.title || memory.content?.substring(0, 100)}
-                  </p>
-                  <span className="text-xs text-gray-500">
-                    {memory.type} • Importance: {memory.importance}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Chat History */}
-        {messages.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-sm text-gray-400 mb-3">Conversation:</h3>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {messages.map((msg, idx) => (
-                <div 
-                  key={idx} 
-                  className={`p-3 rounded ${
-                    msg.role === 'user' 
-                      ? 'bg-gray-800 ml-12' 
-                      : 'bg-blue-900/20 mr-12'
-                  }`}
-                >
-                  <p className="text-sm">{msg.content}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Quick Actions */}
-        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button 
-            onClick={() => searchMemory('Liseberg')}
-            className="p-3 bg-gray-800 rounded hover:bg-gray-700 transition"
-          >
-            🎢 Liseberg
-          </button>
-          <button 
-            onClick={() => searchMemory('Henrik')}
-            className="p-3 bg-gray-800 rounded hover:bg-gray-700 transition"
-          >
-            👥 Friends
-          </button>
-          <button 
-            onClick={() => searchMemory('subscriptions')}
-            className="p-3 bg-gray-800 rounded hover:bg-gray-700 transition"
-          >
-            💰 Costs
-          </button>
-          <button 
-            onClick={() => searchMemory('todo')}
-            className="p-3 bg-gray-800 rounded hover:bg-gray-700 transition"
-          >
-            ✅ Todos
-          </button>
+              View on GitHub →
+            </a>
+          </p>
         </div>
       </div>
     </main>
