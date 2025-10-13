@@ -39,13 +39,13 @@ export const TOOLS = [
     type: 'function',
     function: {
       name: 'get_calendar_events',
-      description: 'Hämta Jonas kalenderhändelser. Se vad som är bokat idag, i veckan, eller specifikt datum.',
+      description: 'Hämta Jonas kalenderhändelser. Se vad som är bokat kommande veckor/månader. ALLTID ange maxResults för att få tillräckligt med events.',
       parameters: {
         type: 'object',
         properties: {
           timeMin: { type: 'string', description: 'Start-datum ISO format (default: today)' },
-          timeMax: { type: 'string', description: 'Slut-datum ISO format' },
-          maxResults: { type: 'number', description: 'Max antal events (default: 10)' }
+          timeMax: { type: 'string', description: 'Slut-datum ISO format (default: +7 days). VIKTIGT: För att se alla events, sätt längre period, t.ex. +30 eller +60 dagar.' },
+          maxResults: { type: 'number', description: 'Max antal events (default: 10). Sätt högre om du vill se fler.' }
         }
       }
     }
