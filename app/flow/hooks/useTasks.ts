@@ -65,14 +65,20 @@ export function useTasks(dayOffset: number = 0) {
           urgent: false
         }));
 
-      const allTasks = [...todoTasks, ...calendarTasks].sort((a, b) => {
-        if (a.urgent && !b.urgent) return -1;
-        if (!a.urgent && b.urgent) return 1;
-        if (a.time && b.time) return a.time.localeCompare(b.time);
-        return 0;
-      });
+      const allTasks = [...todoTasks, ...calendarTasks];
 
-      setTasks(allTasks);
+      // If no tasks from API, use mock data
+      if (allTasks.length === 0) {
+        console.log('[useTasks] No tasks from API, using mock data');
+        setTasks(getMockTasks(dayOffset));
+      } else {
+        setTasks(allTasks.sort((a, b) => {
+          if (a.urgent && !b.urgent) return -1;
+          if (!a.urgent && b.urgent) return 1;
+          if (a.time && b.time) return a.time.localeCompare(b.time);
+          return 0;
+        }));
+      }
     } catch (error) {
       console.error('Failed to fetch tasks:', error);
       setTasks(getMockTasks(dayOffset));
