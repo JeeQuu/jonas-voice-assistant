@@ -6,7 +6,7 @@ const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, context, history = [] } = await request.json();
+    const { message, context, history = [], sessionId } = await request.json();
 
     if (!message?.trim()) {
       return NextResponse.json(
@@ -131,6 +131,11 @@ Svara alltid på svenska.`
             }
 
             console.log(`[Chat] Executing tool: ${toolName}`, toolArgs);
+
+            // Add sessionId to tool args if available
+            if (sessionId) {
+              toolArgs.sessionId = sessionId;
+            }
 
             const result = await executeTool(toolName, toolArgs);
 

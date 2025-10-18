@@ -19,9 +19,11 @@ export default function ChatPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [context, setContext] = useState<any>(null);
   const [healthToday, setHealthToday] = useState<any>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -32,11 +34,84 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  // Load Brainolf 2.0 context on mount
+  // Load Brainolf 2.0 context and start session on mount
   useEffect(() => {
+    startSession();
     loadUserContext();
     loadHealthToday();
-  }, []);
+
+    // LAYER 1: Close session when page unloads (window close/refresh)
+    const handleBeforeUnload = () => {
+      if (sessionId && messages.length > 0) {
+        // Use sendBeacon for guaranteed delivery even when page closes
+        const blob = new Blob([JSON.stringify({
+          sessionId,
+          messages: messages.map(m => ({ role: m.role, content: m.content }))
+        })], { type: 'application/json' });
+        navigator.sendBeacon('/api/session/end', blob);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+    };
+  }, [sessionId, messages]);
+
+  // Start new session
+  const startSession = async () => {
+    try {
+      const res = await fetch('/api/session/start', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setSessionId(data.sessionId);
+        console.log('Session started:', data.sessionId);
+      }
+    } catch (error) {
+      console.error('Failed to start session:', error);
+    }
+  };
+
+  // LAYER 2: Inactivity timer - auto-close session after 30 min of silence
+  const resetInactivityTimer = () => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+
+    inactivityTimerRef.current = setTimeout(async () => {
+      console.log('Session inactive for 30 min, closing...');
+      await endSession();
+    }, 30 * 60 * 1000); // 30 minutes
+  };
+
+  // End session with AI summary
+  const endSession = async () => {
+    if (!sessionId || messages.length === 0) return;
+
+    try {
+      const res = await fetch('/api/session/end', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          messages: messages.map(m => ({ role: m.role, content: m.content }))
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        console.log('Session ended with summary:', data.session.summary);
+        setSessionId(null);
+      }
+    } catch (error) {
+      console.error('Failed to end session:', error);
+    }
+  };
 
   const loadUserContext = async () => {
     try {
@@ -83,6 +158,9 @@ export default function ChatPage() {
     setInput('');
     setIsLoading(true);
 
+    // Reset inactivity timer on every message
+    resetInactivityTimer();
+
     try {
       // Call Next.js chat endpoint (not backend API)
       const response = await fetch('/api/chat', {
@@ -93,7 +171,8 @@ export default function ChatPage() {
         body: JSON.stringify({
           message: text,
           context: context?.summary,
-          history: messages.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content }))
+          history: messages.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
+          sessionId  // Pass sessionId for tool logging
         })
       });
 

@@ -48,10 +48,12 @@ export async function executeTool(toolName: string, params: any): Promise<any> {
     }
 
     if (toolName === 'send_email') {
-      return await callBackend('/api/gmail/send', 'POST', {
+      // TODO: Get sessionId from context/props when available
+      return await callBackend('/api/gmail-send', 'POST', {
         to: params.to,
         subject: params.subject,
-        text: params.text
+        text: params.text,
+        sessionId: params.sessionId // Will be passed from chat API
       });
     }
 
