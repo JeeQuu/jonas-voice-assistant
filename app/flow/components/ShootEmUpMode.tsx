@@ -293,7 +293,7 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
     };
   }, [gameStarted, combo, onCompleteTask]);
 
-  // Controls
+  // Controls - Mouse, Touch, AND Keyboard!
   useEffect(() => {
     if (!gameStarted) return;
 
@@ -305,7 +305,28 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
       }
     };
 
-    const handleClick = () => {
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      if (canvasRef.current && e.touches.length > 0) {
+        const rect = canvasRef.current.getBoundingClientRect();
+        const y = Math.max(30, Math.min(CANVAS_HEIGHT - 30, e.touches[0].clientY - rect.top));
+        setPlayerY(y);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const speed = 15;
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+        setPlayerY(y => Math.max(30, y - speed));
+      } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+        setPlayerY(y => Math.min(CANVAS_HEIGHT - 30, y + speed));
+      } else if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        shootBullet();
+      }
+    };
+
+    const shootBullet = () => {
       if (!gameStarted) return;
       playSound('shoot');
 
@@ -318,12 +339,26 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
       setBullets(prev => [...prev, newBullet]);
     };
 
+    const handleClick = () => {
+      shootBullet();
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      shootBullet();
+    };
+
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('click', handleClick);
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('click', handleClick);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [gameStarted, playerY, rapidFire]);
 
@@ -352,7 +387,10 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
             START GAME
           </button>
           <p className="text-sm text-white/40 mt-12">
-            Move mouse • Click to shoot • Destroy todos = Complete tasks
+            🖱️ Mouse • 👆 Touch • ⌨️ Arrow keys/WASD • 🔫 Click/Tap/Space to shoot
+          </p>
+          <p className="text-xs text-white/30 mt-2">
+            Destroy todos = Complete tasks
           </p>
         </motion.div>
       ) : (
@@ -528,29 +566,42 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
                   </motion.div>
                 )}
 
-                {/* Particles */}
-                {[...Array(explosion.title ? 24 : 12)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
-                    animate={{
-                      x: Math.cos((i * Math.PI * 2) / (explosion.title ? 24 : 12)) * (explosion.title ? 120 : 50),
-                      y: Math.sin((i * Math.PI * 2) / (explosion.title ? 24 : 12)) * (explosion.title ? 120 : 50),
-                      opacity: 0,
-                      scale: 0,
-                    }}
-                    transition={{ duration: explosion.title ? 1.2 : 0.6, ease: 'easeOut' }}
-                    className="absolute rounded-full"
-                    style={{
-                      width: explosion.title ? 16 : 10,
-                      height: explosion.title ? 16 : 10,
-                      backgroundColor: explosion.color,
-                      left: '50%',
-                      top: '50%',
-                      boxShadow: `0 0 20px ${explosion.color}`,
-                    }}
-                  />
-                ))}
+                {/* MEGA PARTICLES - 80 för bossar, 40 för vanliga! */}
+                {[...Array(explosion.title ? 80 : 40)].map((_, i) => {
+                  const isBoss = explosion.title;
+                  const particleCount = isBoss ? 80 : 40;
+                  const angle = (i * Math.PI * 2) / particleCount;
+                  const distance = isBoss ? 180 : 80;
+                  const size = isBoss ? (Math.random() * 12 + 8) : (Math.random() * 8 + 6);
+
+                  return (
+                    <motion.div
+                      key={i}
+                      initial={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
+                      animate={{
+                        x: Math.cos(angle) * distance * (0.7 + Math.random() * 0.6),
+                        y: Math.sin(angle) * distance * (0.7 + Math.random() * 0.6),
+                        opacity: 0,
+                        scale: 0,
+                        rotate: Math.random() * 360,
+                      }}
+                      transition={{
+                        duration: isBoss ? (1.0 + Math.random() * 0.8) : (0.5 + Math.random() * 0.4),
+                        ease: 'easeOut',
+                        delay: Math.random() * 0.1,
+                      }}
+                      className="absolute rounded-full"
+                      style={{
+                        width: size,
+                        height: size,
+                        backgroundColor: explosion.color,
+                        left: '50%',
+                        top: '50%',
+                        boxShadow: `0 0 30px ${explosion.color}`,
+                      }}
+                    />
+                  );
+                })}
               </motion.div>
             ))}
           </AnimatePresence>
