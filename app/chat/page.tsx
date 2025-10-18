@@ -34,13 +34,15 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  // Load Brainolf 2.0 context and start session on mount
+  // Load Brainolf 2.0 context and start session on mount (ONLY ONCE)
   useEffect(() => {
     startSession();
     loadUserContext();
     loadHealthToday();
+  }, []); // Empty deps = run only once on mount
 
-    // LAYER 1: Close session when page unloads (window close/refresh)
+  // LAYER 1: Close session when page unloads (window close/refresh)
+  useEffect(() => {
     const handleBeforeUnload = () => {
       if (sessionId && messages.length > 0) {
         // Use sendBeacon for guaranteed delivery even when page closes
@@ -61,7 +63,7 @@ export default function ChatPage() {
         clearTimeout(inactivityTimerRef.current);
       }
     };
-  }, [sessionId, messages]);
+  }, [sessionId, messages]); // This is fine - just updates the event listener
 
   // Start new session
   const startSession = async () => {
