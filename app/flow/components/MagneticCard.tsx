@@ -2,6 +2,7 @@
 
 import { motion, PanInfo } from 'framer-motion';
 import { Task } from '../types';
+import { useRef } from 'react';
 
 interface MagneticCardProps {
   task: Task;
@@ -27,6 +28,26 @@ export default function MagneticCard({
   // Isometric 3D effect based on elevation
   const elevation = task.urgent ? 12 : task.completed ? 2 : 6;
   const accentColor = CATEGORY_COLORS[task.category];
+  const isDraggingRef = useRef(false);
+
+  const handleDragStart = () => {
+    isDraggingRef.current = true;
+  };
+
+  const handleDragEnd = (e: any, info: PanInfo) => {
+    onDragEnd(task.id, info);
+    // Reset after a short delay to prevent tap from firing
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 100);
+  };
+
+  const handleTap = () => {
+    // Only trigger tap if we didn't just drag
+    if (!isDraggingRef.current) {
+      onTap(task.id);
+    }
+  };
 
   return (
     <motion.div
@@ -34,8 +55,9 @@ export default function MagneticCard({
       dragMomentum
       dragElastic={0.1}
       dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
-      onDragEnd={(e, info) => onDragEnd(task.id, info)}
-      onTap={() => onTap(task.id)}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onTap={handleTap}
       style={{
         position: 'absolute',
         left: 0,
