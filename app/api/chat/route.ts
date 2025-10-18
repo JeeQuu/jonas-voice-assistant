@@ -71,6 +71,7 @@ Svara alltid på svenska.`
     let iterations = 0;
     const maxIterations = 5;
     let finalResponse = '';
+    let totalToolCalls = 0;
 
     while (iterations < maxIterations) {
       iterations++;
@@ -105,6 +106,7 @@ Svara alltid på svenska.`
       // Check if Claude wants to use tool(s)
       if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
         console.log(`[Chat] Claude using ${assistantMessage.tool_calls.length} tool(s)`);
+        totalToolCalls += assistantMessage.tool_calls.length;
 
         // Execute all tool calls
         const toolResults = await Promise.all(
@@ -164,6 +166,7 @@ Svara alltid på svenska.`
     return NextResponse.json({
       response: finalResponse,
       shouldSaveInsight,
+      toolCallsUsed: totalToolCalls,
       timestamp: new Date().toISOString()
     });
 
