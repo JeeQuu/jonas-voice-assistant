@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import FlowMode from './components/FlowMode';
+import MagneticField from './components/MagneticField';
 import FocusMode from './components/FocusMode';
+import { useTasks } from './hooks/useTasks';
 import axios from 'axios';
 
 // Always use production API (deployed on Render)
@@ -10,7 +12,8 @@ const API_URL = 'https://quant-show-api.onrender.com';
 const API_KEY = 'JeeQuuFjong';
 
 export default function FlowDashboard() {
-  const [mode, setMode] = useState<'flow' | 'focus'>('flow');
+  const [mode, setMode] = useState<'magnetic' | 'flow' | 'focus'>('magnetic');
+  const { tasks } = useTasks(0); // Load today's tasks
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const meditationAudioRef = useRef<HTMLAudioElement | null>(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -42,7 +45,9 @@ export default function FlowDashboard() {
   }, []);
 
   const toggleMode = () => {
-    setMode(mode === 'flow' ? 'focus' : 'flow');
+    if (mode === 'magnetic') setMode('flow');
+    else if (mode === 'flow') setMode('focus');
+    else setMode('magnetic');
   };
 
   const toggleMute = () => {
@@ -113,15 +118,17 @@ export default function FlowDashboard() {
       className="min-h-screen bg-[#F5F5F5]"
       onDoubleClick={toggleMode}
     >
-      {mode === 'flow' ? (
+      {mode === 'magnetic' ? (
+        <MagneticField tasks={tasks} onToggleMode={toggleMode} />
+      ) : mode === 'flow' ? (
         <FlowMode onToggleMode={toggleMode} />
       ) : (
         <FocusMode onToggleMode={toggleMode} />
       )}
 
       {/* Mode indicator - geometric block */}
-      <div className="fixed bottom-4 right-4 bg-[#2C3E50] text-white px-4 py-2 border-4 border-white font-black text-xs shadow-lg">
-        {mode === 'flow' ? 'FLOW' : 'FOCUS'} • DOUBLE-TAP
+      <div className="fixed bottom-4 right-4 bg-[#2C3E50] text-white px-4 py-2 border-4 border-white font-black text-xs shadow-lg z-50">
+        {mode.toUpperCase()} • DOUBLE-TAP
       </div>
 
       {/* Music toggle - geometric block */}
