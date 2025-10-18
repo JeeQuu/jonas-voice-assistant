@@ -210,21 +210,15 @@ export async function executeTool(toolName: string, params: any): Promise<any> {
 
     // ===== BRAINOLF CONTEXT =====
     if (toolName === 'get_user_context') {
-      // Call local Next.js route
-      const response = await fetch('http://localhost:3000/api/user-context/summary');
-      return await response.json();
+      // Use backend API instead of localhost
+      return await callBackend('/api/user-context/summary', 'GET');
     }
 
     if (toolName === 'save_insight') {
-      const response = await fetch('http://localhost:3000/api/user-context/insight', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          insight: params.insight,
-          importance: params.importance || 3
-        })
+      return await callBackend('/api/user-context/insight', 'POST', {
+        insight: params.insight,
+        importance: params.importance || 3
       });
-      return await response.json();
     }
 
     if (toolName === 'update_context') {
@@ -236,8 +230,7 @@ export async function executeTool(toolName: string, params: any): Promise<any> {
     }
 
     if (toolName === 'get_today_health') {
-      const response = await fetch('http://localhost:3000/api/user-health/today');
-      return await response.json();
+      return await callBackend('/api/user-health/today', 'GET');
     }
 
     if (toolName === 'update_health') {
