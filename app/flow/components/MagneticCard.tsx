@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, PanInfo, useMotionValue, useTransform } from 'framer-motion';
+import { motion, PanInfo } from 'framer-motion';
 import { Task } from '../types';
 
 interface MagneticCardProps {
@@ -24,14 +24,8 @@ export default function MagneticCard({
   onTap,
   isSelected
 }: MagneticCardProps) {
-  const x = useMotionValue(position.x);
-  const y = useMotionValue(position.y);
-
   // Isometric 3D effect based on elevation
   const elevation = task.urgent ? 12 : task.completed ? 2 : 6;
-  const rotateX = useTransform(y, [0, 400], [2, -2]);
-  const rotateY = useTransform(x, [0, 400], [-2, 2]);
-
   const accentColor = CATEGORY_COLORS[task.category];
 
   return (
@@ -39,37 +33,37 @@ export default function MagneticCard({
       drag
       dragMomentum
       dragElastic={0.1}
-      dragConstraints={{ left: -200, right: 200, top: -200, bottom: 200 }}
+      dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
       onDragEnd={(e, info) => onDragEnd(task.id, info)}
       onTap={() => onTap(task.id)}
-      initial={{ x: position.x, y: position.y, scale: 0.8, opacity: 0 }}
-      animate={{
-        x: position.x,
-        y: position.y,
-        scale: isSelected ? 1.1 : 1,
-        opacity: task.completed ? 0.5 : 1,
-        z: isSelected ? 50 : elevation,
-        rotateX: isSelected ? 0 : rotateX,
-        rotateY: isSelected ? 0 : rotateY,
-      }}
-      transition={{
-        type: 'spring',
-        stiffness: 300,
-        damping: 30,
-        mass: 1,
-      }}
-      whileHover={{
-        scale: 1.02,
-        z: elevation + 4,
-        transition: { duration: 0.2 }
-      }}
       style={{
         position: 'absolute',
+        left: 0,
+        top: 0,
         width: '200px',
         minHeight: '140px',
         cursor: 'grab',
-        transformStyle: 'preserve-3d',
-        perspective: 1000,
+        x: position.x,
+        y: position.y,
+      }}
+      animate={{
+        x: position.x,
+        y: position.y,
+        scale: isSelected ? 1.05 : 1,
+        rotateX: isSelected ? 0 : -2,
+        rotateY: isSelected ? 0 : 2,
+      }}
+      transition={{
+        type: 'spring',
+        stiffness: 260,
+        damping: 25,
+      }}
+      whileHover={{
+        scale: 1.02,
+        transition: { duration: 0.15 }
+      }}
+      whileTap={{
+        scale: 0.98,
       }}
       className="select-none"
     >
@@ -80,8 +74,9 @@ export default function MagneticCard({
           boxShadow: isSelected
             ? `0 ${elevation * 2}px ${elevation * 3}px rgba(0,0,0,0.15), 0 0 0 2px ${accentColor}`
             : `0 ${elevation}px ${elevation * 1.5}px rgba(0,0,0,0.08)`,
-          transform: `translateZ(${elevation}px)`,
           borderLeft: `4px solid ${accentColor}`,
+          transform: `translateZ(${elevation}px) rotateX(-2deg) rotateY(2deg)`,
+          transformStyle: 'preserve-3d',
         }}
       >
         {/* Category badge */}
@@ -149,15 +144,6 @@ export default function MagneticCard({
           </div>
         )}
       </div>
-
-      {/* Isometric shadow plane */}
-      <div
-        className="absolute inset-0 rounded-lg -z-10 blur-md opacity-20"
-        style={{
-          backgroundColor: accentColor,
-          transform: `translateZ(-${elevation}px) scale(0.95)`,
-        }}
-      />
     </motion.div>
   );
 }
