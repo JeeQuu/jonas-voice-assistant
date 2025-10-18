@@ -32,3 +32,4 @@ export default function RootLayout({
     </html>
   );
 }
+// Trigger redeploy - Sat Oct 18 23:16:51 CEST 2025
