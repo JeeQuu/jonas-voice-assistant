@@ -58,6 +58,7 @@ const ENCOURAGEMENTS = [
 ];
 
 export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: ShootEmUpModeProps) {
+  const [playerX, setPlayerX] = useState(100);
   const [playerY, setPlayerY] = useState(300);
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const [bullets, setBullets] = useState<Bullet[]>([]);
@@ -78,7 +79,6 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
 
   const CANVAS_WIDTH = 1000;
   const CANVAS_HEIGHT = 700;
-  const PLAYER_X = 80;
 
   // Sound effects using Web Audio API
   const playSound = (type: 'shoot' | 'hit' | 'boss' | 'powerup') => {
@@ -307,14 +307,27 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
     };
   }, [gameStarted, combo, onCompleteTask]);
 
-  // Controls - Mouse, Touch, AND Keyboard!
+  // Controls - Mouse (FREE MOVEMENT!), Touch, AND Keyboard!
   useEffect(() => {
     if (!gameStarted) return;
+
+    const shootBullet = () => {
+      playSound('shoot');
+      const newBullet: Bullet = {
+        id: `bullet-${Date.now()}-${Math.random()}`,
+        x: playerX + 40,
+        y: playerY,
+        size: rapidFire ? 12 : 8,
+      };
+      setBullets(prev => [...prev, newBullet]);
+    };
 
     const handleMouseMove = (e: MouseEvent) => {
       if (canvasRef.current) {
         const rect = canvasRef.current.getBoundingClientRect();
+        const x = Math.max(30, Math.min(CANVAS_WIDTH - 30, e.clientX - rect.left));
         const y = Math.max(30, Math.min(CANVAS_HEIGHT - 30, e.clientY - rect.top));
+        setPlayerX(x);
         setPlayerY(y);
       }
     };
@@ -323,7 +336,9 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
       e.preventDefault();
       if (canvasRef.current && e.touches.length > 0) {
         const rect = canvasRef.current.getBoundingClientRect();
+        const x = Math.max(30, Math.min(CANVAS_WIDTH - 30, e.touches[0].clientX - rect.left));
         const y = Math.max(30, Math.min(CANVAS_HEIGHT - 30, e.touches[0].clientY - rect.top));
+        setPlayerX(x);
         setPlayerY(y);
       }
     };
@@ -334,47 +349,42 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
         setPlayerY(y => Math.max(30, y - speed));
       } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
         setPlayerY(y => Math.min(CANVAS_HEIGHT - 30, y + speed));
+      } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        setPlayerX(x => Math.max(30, x - speed));
+      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        setPlayerX(x => Math.min(CANVAS_WIDTH - 30, x + speed));
       } else if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
         shootBullet();
       }
     };
 
-    const shootBullet = () => {
-      if (!gameStarted) return;
-      playSound('shoot');
-
-      const newBullet: Bullet = {
-        id: `bullet-${Date.now()}`,
-        x: PLAYER_X + 40,
-        y: playerY,
-        size: rapidFire ? 12 : 8,
-      };
-      setBullets(prev => [...prev, newBullet]);
-    };
-
     const handleClick = () => {
       shootBullet();
     };
 
-    const handleTouchStart = (e: TouchEvent) => {
+    const handleTouchStart = () => {
       shootBullet();
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
-    window.addEventListener('click', handleClick);
-    window.addEventListener('touchstart', handleTouchStart);
+    if (canvasRef.current) {
+      canvasRef.current.addEventListener('mousemove', handleMouseMove as any);
+      canvasRef.current.addEventListener('touchmove', handleTouchMove as any, { passive: false });
+      canvasRef.current.addEventListener('click', handleClick);
+      canvasRef.current.addEventListener('touchstart', handleTouchStart);
+    }
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('click', handleClick);
-      window.removeEventListener('touchstart', handleTouchStart);
+      if (canvasRef.current) {
+        canvasRef.current.removeEventListener('mousemove', handleMouseMove as any);
+        canvasRef.current.removeEventListener('touchmove', handleTouchMove as any);
+        canvasRef.current.removeEventListener('click', handleClick);
+        canvasRef.current.removeEventListener('touchstart', handleTouchStart);
+      }
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [gameStarted, playerY, rapidFire]);
+  }, [gameStarted, playerX, playerY, rapidFire]);
 
   return (
     <div className="relative w-full h-screen bg-[#0A0A0A] flex items-center justify-center overflow-hidden">
@@ -401,10 +411,10 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
             START GAME
           </button>
           <p className="text-sm text-white/40 mt-12">
-            🖱️ Mouse • 👆 Touch • ⌨️ Arrow keys/WASD • 🔫 Click/Tap/Space to shoot
+            🖱️ Move mouse anywhere • ⌨️ WASD/Arrows (all directions) • 🔫 Click/Space to shoot
           </p>
           <p className="text-xs text-white/30 mt-2">
-            Destroy todos = Complete tasks
+            👆 Touch works too! • Destroy todos = Complete tasks
           </p>
         </motion.div>
       ) : (
@@ -455,12 +465,12 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
             </motion.div>
           )}
 
-          {/* Player */}
+          {/* Player - FREE MOVEMENT! */}
           <motion.div
-            animate={{ y: playerY }}
+            animate={{ x: playerX, y: playerY }}
             transition={{ type: 'spring', stiffness: 800, damping: 40 }}
             className="absolute z-40"
-            style={{ left: PLAYER_X, width: 50, height: 50, transform: 'translate(-50%, -50%)' }}
+            style={{ width: 50, height: 50, transform: 'translate(-50%, -50%)' }}
           >
             <div className="w-full h-full bg-gradient-to-r from-cyan-400 to-blue-500 relative" style={{
               clipPath: 'polygon(0% 50%, 100% 20%, 100% 80%)',
