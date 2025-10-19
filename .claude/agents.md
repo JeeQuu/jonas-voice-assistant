@@ -268,31 +268,26 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 - Health/scoring/combo mechanics
 - Multi-input support (mouse/touch/keyboard)
 
-## 🚨 Current Issues (2025-10-19)
+## ✅ Recent Fixes (2025-10-19)
 
-### CRITICAL: Invalid Supabase Key on Frontend
-**Status**: ❌ BLOCKING CHAT
-**Error**: `Session start error: Invalid API key`
-**Impact**: Chat sessions cannot start, no memory works
-**Fix**:
-1. Go to https://dashboard.vercel.com
-2. Find `jonas-flow-dashboard` project
-3. Settings → Environment Variables
-4. Remove `SUPABASE_SERVICE_KEY`
-5. Add new one WITHOUT `\n` characters
-6. Redeploy
+### Calendar Connection Fixed (22:15)
+**Problem**: Calendar worked via direct API call but not from chat interface
+**Root Cause**: Parameter mismatch between frontend and backend
+- **Frontend sent**: `timeMin`, `timeMax`, `maxResults`
+- **Backend expected**: `days`
 
-### CRITICAL: OpenRouter Out of Credits
-**Status**: ❌ BLOCKING CHAT
-**Error**: `Chat error: Payment Required - Insufficient credits`
-**Impact**: AI chat completely broken, no Claude responses
-**Fix**: Go to https://openrouter.ai/settings/credits and add payment
+**Solution**: Updated `api/server.js:258-301` to accept both parameter formats
+**Files Changed**: `api/server.js` (calendar endpoint)
+**Status**: ✅ DEPLOYED to Render
 
-### Health Data Errors
-**Status**: ⚠️ NON-BLOCKING
-**Error**: `Health today error`
-**Impact**: Health dashboard might not load
-**Fix**: Check `api/user-health.js` endpoint
+### OpenRouter Credits
+**Status**: ✅ RESOLVED ($7.36 available)
+
+### Supabase Connection
+**Status**: ✅ WORKING (sessions creating properly)
+
+### Project Naming
+**Status**: ✅ FIXED (folder renamed to `quant-show/`)
 
 ---
 
@@ -321,6 +316,11 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 ### Tasks Not Loading
 **Problem**: API returns empty array
 **Solution**: Fallback to `getMockTasks()` in `useTasks.ts:71-74`
+
+### Calendar Not Working From Chat
+**Problem**: Calendar tool returns empty or errors when called from chat, but direct API call works
+**Root Cause**: Frontend sends `timeMin`/`timeMax`/`maxResults`, backend only accepts `days`
+**Solution**: Update `api/server.js` calendar endpoint to support both parameter formats (fixed 2025-10-19)
 
 ## Coding Preferences
 
@@ -365,11 +365,12 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 4. NEVER use Vercel CLI for env vars (links to wrong project)
 5. Always set env vars via Vercel dashboard
 
-**System Status** (2025-10-19 21:40):
+**System Status** (2025-10-19 22:15):
 - ✅ All systems operational
 - ✅ OpenRouter: $7.36 credits
 - ✅ Supabase: Working
 - ✅ Chat: Fully functional
+- ✅ Calendar: Fixed (timeMin/timeMax params)
 - ✅ Cron job: Deployed (15 min / 5 min timeout)
 - ✅ Naming: Fixed!
 
@@ -378,6 +379,7 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 - ✅ Cron job (15 min, 5 min timeout)
 - ✅ FLOW Dashboard (all 4 modes)
 - ✅ Database structure
+- ✅ Calendar connection (chat + API)
 
 ---
 
