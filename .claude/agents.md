@@ -1,10 +1,18 @@
-# Jonas Voice Assistant & FLOW Dashboard
+# Quant Show - AI Assistant & FLOW Dashboard
+
+## ✅ Project Naming (FIXED 2025-10-19)
+**Local folder**: `quant-show/` ✅ (renamed from jonas-voice-assistant)
+- **Backend**: `quant-show-api` (Render) ✅
+- **Frontend**: `jonas-flow-dashboard` (Vercel) ✅
+- **Dead Project**: `jonas-voice-assistant` (Vercel) ❌ should be deleted
+
+**Everything is now consistently named "quant-show"!**
 
 ## Project Overview
 
 This is Jonas's personal AI assistant system with two main components:
-1. **Backend API** - Node.js/Express backend deployed on Render
-2. **Frontend** - Next.js 14 (App Router) deployed on Vercel
+1. **Backend API** - `quant-show-api` deployed on Render.com
+2. **Frontend** - `jonas-flow-dashboard` deployed on Vercel
 
 The system provides:
 - AI chat assistant with persistent memory (Brainolf 2.0)
@@ -18,7 +26,7 @@ The system provides:
 ## Architecture
 
 ```
-jonas-voice-assistant/
+quant-show/                       # Local folder (renamed 2025-10-19)
 ├── api/                          # Backend (deployed to Render)
 │   ├── server.js                 # Main Express server
 │   ├── gmail-send.js             # Email sending with session logging
@@ -54,20 +62,21 @@ jonas-voice-assistant/
 
 ## Deployment
 
-### Backend (Render)
+### Backend (Render) - quant-show-api
+- **Project Name**: `quant-show-api` ⚠️ NOT jonas-voice-assistant!
 - **URL**: `https://quant-show-api.onrender.com`
 - **API Key**: `JeeQuuFjong` (header: `x-api-key`)
 - **Deployment**: Auto-deploy from GitHub `main` branch
 - **Cronjobs**: Configured in `render.yaml`
-  - `close-inactive-sessions`: Runs hourly (Layer 3 safety net)
+  - `close-inactive-sessions`: **Every 15 minutes** (5 min inactivity timeout)
   - `daily-context`: Daily AI summaries
   - Other health/subscription checks
 
-### Frontend (Vercel)
-- **Production**: `https://jonas-flow-dashboard.vercel.app`
-- **Project**: jonas-flow-dashboard (this is the active one)
-- **Old project**: jonas-voice-assistant (deprecated, should be removed)
+### Frontend (Vercel) - jonas-flow-dashboard
+- **Project Name**: `jonas-flow-dashboard` ⚠️ NOT jonas-voice-assistant!
+- **Production URL**: `https://jonas-flow-dashboard.vercel.app`
 - **Deployment**: Auto-deploy from GitHub `main` branch
+- **Dead Project**: `jonas-voice-assistant` (Vercel) - **DELETE THIS**, has zero env vars
 
 ## Environment Variables
 
@@ -92,10 +101,12 @@ SUPABASE_URL=https://[project].supabase.co
 SUPABASE_SERVICE_KEY=[key without \n characters!]
 ```
 
-**IMPORTANT**:
-- NEVER include `\n` characters in `SUPABASE_SERVICE_KEY`
-- Use `vercel env rm` then `vercel env add` to fix broken env vars
-- jonas-flow-dashboard is the ACTIVE project, not jonas-voice-assistant
+**CRITICAL WARNINGS**:
+- ⚠️ NEVER include `\n` characters in `SUPABASE_SERVICE_KEY`
+- ⚠️ Set env vars in Vercel DASHBOARD, NOT via CLI (CLI links to wrong project)
+- ⚠️ jonas-flow-dashboard is the ACTIVE project
+- ⚠️ jonas-voice-assistant Vercel project should be DELETED
+- ⚠️ Local folder name `jonas-voice-assistant/` does NOT match project names
 
 ## Database (Supabase)
 
@@ -144,10 +155,11 @@ The chat client uses a sophisticated 3-layer session closing system to ensure co
 - Located in: `app/chat/page.tsx`
 
 ### Layer 3: Cronjob Safety Net
-- Hourly cronjob finds orphaned sessions
-- Closes sessions inactive for >30 minutes
+- **Every 15 minutes** cronjob finds orphaned sessions
+- Closes sessions inactive for **>5 minutes**
 - Runs even if frontend never closes
 - Located in: `api/cron/close-inactive-sessions.js`
+- Deployed on Render as cron job (✅ ACTIVE as of 2025-10-19)
 
 **Session Lifecycle:**
 1. `startSession()` creates new session in Supabase
@@ -256,6 +268,34 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 - Health/scoring/combo mechanics
 - Multi-input support (mouse/touch/keyboard)
 
+## 🚨 Current Issues (2025-10-19)
+
+### CRITICAL: Invalid Supabase Key on Frontend
+**Status**: ❌ BLOCKING CHAT
+**Error**: `Session start error: Invalid API key`
+**Impact**: Chat sessions cannot start, no memory works
+**Fix**:
+1. Go to https://dashboard.vercel.com
+2. Find `jonas-flow-dashboard` project
+3. Settings → Environment Variables
+4. Remove `SUPABASE_SERVICE_KEY`
+5. Add new one WITHOUT `\n` characters
+6. Redeploy
+
+### CRITICAL: OpenRouter Out of Credits
+**Status**: ❌ BLOCKING CHAT
+**Error**: `Chat error: Payment Required - Insufficient credits`
+**Impact**: AI chat completely broken, no Claude responses
+**Fix**: Go to https://openrouter.ai/settings/credits and add payment
+
+### Health Data Errors
+**Status**: ⚠️ NON-BLOCKING
+**Error**: `Health today error`
+**Impact**: Health dashboard might not load
+**Fix**: Check `api/user-health.js` endpoint
+
+---
+
 ## Common Issues & Solutions
 
 ### Session Restart Loop
@@ -264,7 +304,7 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 
 ### Environment Variable Newlines
 **Problem**: `SUPABASE_SERVICE_KEY` has `\n` causing "invalid header value"
-**Solution**: `vercel env rm SUPABASE_SERVICE_KEY` then `vercel env add` without newlines
+**Solution**: Fix in Vercel DASHBOARD (CLI links to wrong project!), add without newlines
 
 ### CORS PATCH Method
 **Problem**: "Method PATCH not allowed" in browser
@@ -274,9 +314,9 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 **Problem**: Tap event fires on drag end
 **Solution**: Use `isDraggingRef` to differentiate drag from tap in `MagneticCard.tsx`
 
-### Duplicate Vercel Projects
-**Problem**: jonas-voice-assistant and jonas-flow-dashboard both exist
-**Solution**: jonas-flow-dashboard is ACTIVE, update env vars there, delete old project
+### Wrong Vercel Project Linked
+**Problem**: `vercel link` defaults to `jonas-voice-assistant` (dead project with zero env vars)
+**Solution**: ALWAYS set env vars via Vercel dashboard for `jonas-flow-dashboard`, NOT via CLI
 
 ### Tasks Not Loading
 **Problem**: API returns empty array
@@ -305,7 +345,10 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 
 ## Future Improvements
 
-- Clean up duplicate Vercel project (jonas-voice-assistant)
+- ✅ ~~Rename local folder~~ - **DONE** (now `quant-show/`)
+- ✅ ~~Fix Supabase key~~ - **WORKING**
+- ✅ ~~Add OpenRouter credits~~ - **WORKING** ($7.36)
+- **TODO**: Delete dead `jonas-voice-assistant` Vercel project
 - More game modes in TODO DESTROYER (endless mode, leaderboards)
 - Better mobile UX for Magnetic Field (current physics tuned for desktop)
 - Voice input for chat assistant
@@ -313,5 +356,30 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 
 ---
 
-**Last Updated**: 2025-10-19
+## Quick Reference for New AI Contexts
+
+**ALWAYS REMEMBER**:
+1. Local folder = `quant-show/` ✅ (renamed 2025-10-19)
+2. Backend = `quant-show-api` on Render ✅
+3. Frontend = `jonas-flow-dashboard` on Vercel ✅
+4. NEVER use Vercel CLI for env vars (links to wrong project)
+5. Always set env vars via Vercel dashboard
+
+**System Status** (2025-10-19 21:40):
+- ✅ All systems operational
+- ✅ OpenRouter: $7.36 credits
+- ✅ Supabase: Working
+- ✅ Chat: Fully functional
+- ✅ Cron job: Deployed (15 min / 5 min timeout)
+- ✅ Naming: Fixed!
+
+**What's Working**:
+- ✅ Backend API on Render
+- ✅ Cron job (15 min, 5 min timeout)
+- ✅ FLOW Dashboard (all 4 modes)
+- ✅ Database structure
+
+---
+
+**Last Updated**: 2025-10-19 19:45
 **Maintained By**: Jonas + Claude Code
