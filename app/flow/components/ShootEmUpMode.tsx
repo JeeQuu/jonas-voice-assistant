@@ -18,6 +18,9 @@ interface Enemy {
   speed: number;
   isBoss?: boolean;
   health?: number;
+  rotation?: number;
+  scale?: number;
+  hue?: number;
 }
 
 interface Bullet {
@@ -163,13 +166,17 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
         speed: isBoss ? 0.5 : randomTask.urgent ? 3.5 : 2.5,
         isBoss,
         health: isBoss ? 10 : 1,
+        rotation: 0,
+        scale: 1,
+        hue: Math.random() * 360,
       };
 
       setEnemies(prev => [...prev, newEnemy]);
 
       if (isBoss) {
         playSound('boss');
-        addFloatingText('⚠️ BOSS TODO ⚠️', CANVAS_WIDTH / 2, 100, '#EF4444');
+        addFloatingText('🤖 TODILOOOO IT TODILOOOO! 🌈', CANVAS_WIDTH / 2, 100, '#FF00FF');
+        setTimeout(() => addFloatingText('⚠️ PSYCHEDELIC BOSS ⚠️', CANVAS_WIDTH / 2, 150, '#00FFFF'), 500);
       }
     }, rapidFire ? 1500 : 2000);
 
@@ -183,9 +190,16 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
     if (!gameStarted) return;
 
     const gameLoop = () => {
+      // Update enemies with PSYCHEDELIC motion!
       setEnemies(prev =>
         prev
-          .map(e => ({ ...e, x: e.x - e.speed }))
+          .map(e => ({
+            ...e,
+            x: e.x - e.speed,
+            rotation: (e.rotation || 0) + (e.isBoss ? 2 : 1),
+            scale: e.isBoss ? 1 + Math.sin(Date.now() / 200) * 0.15 : 1,
+            hue: ((e.hue || 0) + (e.isBoss ? 2 : 0.5)) % 360,
+          }))
           .filter(e => e.x > -200)
       );
 
@@ -480,14 +494,19 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
             ))}
           </AnimatePresence>
 
-          {/* Enemies */}
+          {/* Enemies - PSYCHEDELIC TODO ROBOTS! */}
           <AnimatePresence>
             {enemies.map(enemy => (
               <motion.div
                 key={enemy.id}
                 initial={{ opacity: 0, scale: enemy.isBoss ? 0.3 : 0.5, rotate: -20 }}
-                animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                exit={{ opacity: 0, scale: 0, rotate: 20 }}
+                animate={{
+                  opacity: 1,
+                  scale: enemy.scale || 1,
+                  rotate: enemy.rotation || 0,
+                }}
+                exit={{ opacity: 0, scale: 0, rotate: 360 }}
+                transition={{ rotate: { duration: 0 } }}
                 className="absolute"
                 style={{
                   left: enemy.x,
@@ -497,27 +516,78 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
                   transform: 'translate(-50%, -50%)',
                 }}
               >
-                <div
-                  className="w-full h-full flex items-center justify-center font-bold text-white px-3 relative"
-                  style={{
-                    backgroundColor: CATEGORY_COLORS[enemy.task.category],
-                    clipPath: 'polygon(100% 50%, 0% 10%, 0% 90%)',
-                    border: enemy.task.urgent || enemy.isBoss ? '3px solid #EF4444' : 'none',
-                    boxShadow: enemy.isBoss ? '0 0 40px rgba(239, 68, 68, 0.9)' : 'none',
-                    fontSize: enemy.isBoss ? '14px' : '11px',
-                  }}
-                >
-                  {enemy.isBoss && <span className="absolute -top-6 text-xs text-red-500 font-black">⚠️ BOSS ⚠️</span>}
-                  <span className="truncate ml-3">{enemy.task.title.substring(0, enemy.isBoss ? 30 : 18)}</span>
-                  {enemy.isBoss && (
-                    <div className="absolute -bottom-5 left-0 right-0 h-1 bg-gray-700 rounded">
+                {enemy.isBoss ? (
+                  // PSYCHEDELIC BOSS ROBOT!
+                  <div className="relative w-full h-full">
+                    {/* Robot body with rainbow gradient */}
+                    <div
+                      className="w-full h-full flex items-center justify-center font-black text-white px-3 relative"
+                      style={{
+                        background: `linear-gradient(${enemy.hue || 0}deg,
+                          hsl(${enemy.hue || 0}, 100%, 50%),
+                          hsl(${((enemy.hue || 0) + 120) % 360}, 100%, 50%),
+                          hsl(${((enemy.hue || 0) + 240) % 360}, 100%, 50%))`,
+                        borderRadius: '20px',
+                        border: '4px solid #FFD700',
+                        boxShadow: `0 0 40px hsl(${enemy.hue || 0}, 100%, 50%), 0 0 80px hsl(${((enemy.hue || 0) + 180) % 360}, 100%, 50%)`,
+                        fontSize: '16px',
+                        textShadow: '0 0 10px rgba(0,0,0,0.8)',
+                      }}
+                    >
+                      {/* Robot eyes */}
+                      <div className="absolute -top-3 left-1/4 w-8 h-8 bg-white rounded-full animate-pulse"
+                        style={{ boxShadow: '0 0 20px #00FFFF' }} />
+                      <div className="absolute -top-3 right-1/4 w-8 h-8 bg-white rounded-full animate-pulse"
+                        style={{ boxShadow: '0 0 20px #FF00FF', animationDelay: '0.5s' }} />
+
+                      {/* Robot antenna */}
+                      <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-2 h-10 bg-gradient-to-t from-yellow-400 to-pink-500" />
+                      <div className="absolute -top-14 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-purple-600 animate-spin" />
+
+                      <span className="truncate z-10 relative">🤖 {enemy.task.title.substring(0, 20)} 🤖</span>
+                    </div>
+
+                    {/* Health bar */}
+                    <div className="absolute -bottom-5 left-0 right-0 h-2 bg-gray-700 rounded-full border-2 border-white">
                       <div
-                        className="h-full bg-red-500 rounded transition-all"
-                        style={{ width: `${((enemy.health || 1) / 10) * 100}%` }}
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${((enemy.health || 1) / 10) * 100}%`,
+                          background: `linear-gradient(90deg, #00FF00, #FFFF00, #FF0000)`,
+                        }}
                       />
                     </div>
-                  )}
-                </div>
+
+                    {/* Floating "TODILOOOO" text */}
+                    <motion.div
+                      animate={{
+                        y: [0, -10, 0],
+                        opacity: [0.6, 1, 0.6],
+                      }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                      className="absolute -top-16 left-1/2 -translate-x-1/2 text-2xl font-black whitespace-nowrap"
+                      style={{
+                        color: `hsl(${enemy.hue || 0}, 100%, 50%)`,
+                        textShadow: '0 0 10px #000, 0 0 20px #FFF',
+                      }}
+                    >
+                      TODILOOOO!
+                    </motion.div>
+                  </div>
+                ) : (
+                  // Normal enemy - simple with slight rainbow
+                  <div
+                    className="w-full h-full flex items-center justify-center font-bold text-white px-3 relative"
+                    style={{
+                      background: `linear-gradient(135deg, ${CATEGORY_COLORS[enemy.task.category]}, hsl(${enemy.hue || 0}, 70%, 50%))`,
+                      clipPath: 'polygon(100% 50%, 0% 10%, 0% 90%)',
+                      border: enemy.task.urgent ? '2px solid #EF4444' : 'none',
+                      fontSize: '11px',
+                    }}
+                  >
+                    <span className="truncate ml-3">{enemy.task.title.substring(0, 18)}</span>
+                  </div>
+                )}
               </motion.div>
             ))}
           </AnimatePresence>
