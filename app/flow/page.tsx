@@ -118,10 +118,7 @@ export default function FlowDashboard() {
   };
 
   return (
-    <div
-      className="min-h-screen bg-[#F5F5F5]"
-      onDoubleClick={toggleMode}
-    >
+    <div className="min-h-screen bg-[#F5F5F5]">
       {mode === 'magnetic' ? (
         <MagneticField tasks={tasks} onToggleMode={toggleMode} onCompleteTask={markComplete} />
       ) : mode === 'flow' ? (
@@ -134,8 +131,11 @@ export default function FlowDashboard() {
         <HyperspaceMode tasks={tasks} onToggleMode={toggleMode} />
       )}
 
-      {/* Mode indicator - geometric block */}
-      <div className="fixed bottom-4 right-4 bg-[#2C3E50] text-white px-4 py-2 border-4 border-white font-black text-xs shadow-lg z-50">
+      {/* Mode indicator - geometric block - DOUBLE TAP THIS TO SWITCH */}
+      <div
+        onDoubleClick={toggleMode}
+        className="fixed bottom-4 right-4 bg-[#2C3E50] text-white px-4 py-2 border-4 border-white font-black text-xs shadow-lg z-50 cursor-pointer hover:bg-[#34495E] transition-colors"
+      >
         {mode.toUpperCase()} • DOUBLE-TAP
       </div>
 

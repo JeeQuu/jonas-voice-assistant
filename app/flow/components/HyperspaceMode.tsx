@@ -38,7 +38,7 @@ const CATEGORY_COLORS = {
 
 export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModeProps) {
   const [items, setItems] = useState<FlyingItem[]>([]);
-  const [speed, setSpeed] = useState(0.3); // Much slower, elegant
+  const [speed, setSpeed] = useState(0.05); // VERY slow, elegant
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
 
@@ -62,7 +62,7 @@ export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModePr
         x: Math.cos(angle) * radius,
         y: Math.sin(angle) * radius,
         z: Math.random() * 5000 + 2000,
-        speed: task.urgent ? 3 : 2,
+        speed: task.urgent ? 1.5 : 1.0, // Reduced from 3:2 to 1.5:1
         size: task.urgent ? 20 : 14,
         color: CATEGORY_COLORS[task.category] || CATEGORY_COLORS.todo,
         trail: false, // No trails, cleaner
@@ -88,7 +88,7 @@ export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModePr
           x: Math.cos(angle) * radius,
           y: Math.sin(angle) * radius,
           z: Math.random() * 5000 + 2000,
-          speed: 2.5,
+          speed: 1.2, // Reduced from 2.5
           size: 16,
           color: CATEGORY_COLORS.email,
           trail: false,
@@ -117,7 +117,7 @@ export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModePr
           x: Math.cos(angle) * radius,
           y: Math.sin(angle) * radius,
           z: Math.random() * 5000 + 2000,
-          speed: 2,
+          speed: 1.0, // Reduced from 2
           size: 18,
           color: CATEGORY_COLORS.project,
           trail: false,
@@ -284,16 +284,16 @@ export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModePr
       {/* Minimal speed control */}
       <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-6">
         <button
-          onClick={() => setSpeed(Math.max(0.1, speed - 0.1))}
+          onClick={() => setSpeed(Math.max(0.01, speed - 0.02))}
           className="bg-white/5 border border-white/10 text-white/40 px-5 py-2 text-sm font-light hover:bg-white/10 hover:text-white/60 transition-all tracking-wider"
         >
           slower
         </button>
         <div className="bg-white/5 border border-white/10 px-5 py-2 text-sm font-mono text-white/30 tracking-wider">
-          {speed.toFixed(1)}x
+          {speed.toFixed(2)}x
         </div>
         <button
-          onClick={() => setSpeed(Math.min(2, speed + 0.1))}
+          onClick={() => setSpeed(Math.min(0.5, speed + 0.02))}
           className="bg-white/5 border border-white/10 text-white/40 px-5 py-2 text-sm font-light hover:bg-white/10 hover:text-white/60 transition-all tracking-wider"
         >
           faster

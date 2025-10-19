@@ -423,12 +423,14 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
           ref={canvasRef}
           animate={shake ? { x: [0, -5, 5, -5, 5, 0] } : {}}
           transition={{ duration: 0.1 }}
-          className="relative bg-gradient-to-b from-[#0A0A0A] to-[#1A0A0A]"
+          className="relative bg-gradient-to-b from-[#0A0A0A] to-[#1A0A0A] cursor-crosshair"
           style={{
             width: CANVAS_WIDTH,
             height: CANVAS_HEIGHT,
             border: '3px solid #333',
             boxShadow: '0 0 50px rgba(255, 0, 0, 0.3)',
+            touchAction: 'none',
+            userSelect: 'none',
           }}
         >
           {/* HUD */}
