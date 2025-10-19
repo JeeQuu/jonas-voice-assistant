@@ -67,21 +67,18 @@ export function useTasks(dayOffset: number = 0) {
 
       const allTasks = [...todoTasks, ...calendarTasks];
 
-      // If no tasks from API, use mock data
-      if (allTasks.length === 0) {
-        console.log('[useTasks] No tasks from API, using mock data');
-        setTasks(getMockTasks(dayOffset));
-      } else {
-        setTasks(allTasks.sort((a, b) => {
-          if (a.urgent && !b.urgent) return -1;
-          if (!a.urgent && b.urgent) return 1;
-          if (a.time && b.time) return a.time.localeCompare(b.time);
-          return 0;
-        }));
-      }
+      // Sort tasks
+      setTasks(allTasks.sort((a, b) => {
+        if (a.urgent && !b.urgent) return -1;
+        if (!a.urgent && b.urgent) return 1;
+        if (a.time && b.time) return a.time.localeCompare(b.time);
+        return 0;
+      }));
+
+      console.log(`[useTasks] Loaded ${allTasks.length} tasks from API`);
     } catch (error) {
       console.error('Failed to fetch tasks:', error);
-      setTasks(getMockTasks(dayOffset));
+      setTasks([]);
     } finally {
       setLoading(false);
     }
@@ -113,170 +110,4 @@ export function useTasks(dayOffset: number = 0) {
   };
 
   return { tasks, loading, fetchTasks, markComplete };
-}
-
-// Mock data for development - LOTS of tasks for testing!
-function getMockTasks(dayOffset: number): Task[] {
-  if (dayOffset === 0) {
-    // Today - FULL day
-    return [
-      {
-        id: '1',
-        title: 'Liseberg Deadline',
-        description: 'Animation projektion sista touch',
-        time: '09:00',
-        category: 'jobb',
-        urgent: true,
-        progress: 85
-      },
-      {
-        id: '2',
-        title: 'Sonja till skolan',
-        description: 'Packa matsäck',
-        time: '07:30',
-        category: 'familj',
-        urgent: false
-      },
-      {
-        id: '3',
-        title: 'Client meeting',
-        description: 'Rune @ Liseberg',
-        time: '10:30',
-        category: 'jobb',
-        urgent: false
-      },
-      {
-        id: '4',
-        title: 'Lunch med Karin',
-        time: '12:00',
-        category: 'familj',
-        urgent: false
-      },
-      {
-        id: '5',
-        title: 'Ring Gun',
-        description: 'Fredagsprat',
-        time: '14:00',
-        category: 'familj',
-        urgent: false
-      },
-      {
-        id: '6',
-        title: 'Code review',
-        description: 'Philip\'s animation code',
-        time: '15:00',
-        category: 'jobb',
-        urgent: false,
-        progress: 30
-      },
-      {
-        id: '7',
-        title: 'Discgolf',
-        description: 'Med Henrik, Slottsskogen',
-        time: '17:00',
-        category: 'hälsa',
-        urgent: false
-      },
-      {
-        id: '8',
-        title: 'Kvällsmat familjen',
-        time: '19:00',
-        category: 'familj',
-        urgent: false
-      },
-      {
-        id: '9',
-        title: 'Yoga stretch',
-        description: '15 min',
-        time: '21:00',
-        category: 'hälsa',
-        urgent: false
-      }
-    ];
-  } else if (dayOffset === -1) {
-    // Yesterday
-    return [
-      {
-        id: '10',
-        title: 'Möte med Philip',
-        time: '10:00',
-        category: 'jobb',
-        completed: true
-      },
-      {
-        id: '11',
-        title: 'Sigge förskola',
-        time: '08:00',
-        category: 'familj',
-        completed: true
-      },
-      {
-        id: '12',
-        title: 'Gympass',
-        time: '17:00',
-        category: 'hälsa',
-        completed: true
-      },
-      {
-        id: '13',
-        title: 'Netflix payment',
-        category: 'jobb',
-        completed: true
-      },
-      {
-        id: '14',
-        title: 'Stella doctors appt',
-        time: '14:00',
-        category: 'familj',
-        completed: false,
-        urgent: true
-      }
-    ];
-  } else if (dayOffset === 1) {
-    // Tomorrow
-    return [
-      {
-        id: '15',
-        title: 'Sonja veckoschema',
-        time: '08:00',
-        category: 'familj'
-      },
-      {
-        id: '16',
-        title: 'Liseberg final review',
-        time: '11:00',
-        category: 'jobb',
-        urgent: true
-      },
-      {
-        id: '17',
-        title: 'Karin möte',
-        time: '15:00',
-        category: 'familj'
-      },
-      {
-        id: '18',
-        title: 'Löpning 5km',
-        time: '18:00',
-        category: 'hälsa'
-      },
-      {
-        id: '19',
-        title: 'Podcast recording',
-        description: 'Quant Music episode',
-        time: '20:00',
-        category: 'jobb',
-        progress: 0
-      }
-    ];
-  } else {
-    // Other days - random
-    return [
-      {
-        id: `${dayOffset}-1`,
-        title: 'General task',
-        category: 'jobb'
-      }
-    ];
-  }
 }
