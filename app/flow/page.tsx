@@ -4,8 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import FlowMode from './components/FlowMode';
 import MagneticField from './components/MagneticField';
 import FocusMode from './components/FocusMode';
-import ShootEmUpMode from './components/ShootEmUpMode';
-import HyperspaceMode from './components/HyperspaceMode';
 import { useTasks } from './hooks/useTasks';
 import axios from 'axios';
 
@@ -14,7 +12,7 @@ const API_URL = 'https://quant-show-api.onrender.com';
 const API_KEY = 'JeeQuuFjong';
 
 export default function FlowDashboard() {
-  const [mode, setMode] = useState<'magnetic' | 'flow' | 'focus' | 'shooter' | 'hyperspace'>('magnetic');
+  const [mode, setMode] = useState<'magnetic' | 'flow' | 'focus'>('magnetic');
   const { tasks, markComplete } = useTasks(0); // Load today's tasks
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const meditationAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -49,8 +47,6 @@ export default function FlowDashboard() {
   const toggleMode = () => {
     if (mode === 'magnetic') setMode('flow');
     else if (mode === 'flow') setMode('focus');
-    else if (mode === 'focus') setMode('shooter');
-    else if (mode === 'shooter') setMode('hyperspace');
     else setMode('magnetic');
   };
 
@@ -123,12 +119,8 @@ export default function FlowDashboard() {
         <MagneticField tasks={tasks} onToggleMode={toggleMode} onCompleteTask={markComplete} />
       ) : mode === 'flow' ? (
         <FlowMode onToggleMode={toggleMode} />
-      ) : mode === 'focus' ? (
-        <FocusMode onToggleMode={toggleMode} />
-      ) : mode === 'shooter' ? (
-        <ShootEmUpMode tasks={tasks} onToggleMode={toggleMode} onCompleteTask={markComplete} />
       ) : (
-        <HyperspaceMode tasks={tasks} onToggleMode={toggleMode} />
+        <FocusMode onToggleMode={toggleMode} />
       )}
 
       {/* Mode indicator - geometric block - DOUBLE TAP THIS TO SWITCH */}
