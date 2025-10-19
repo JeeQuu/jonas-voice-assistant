@@ -185,20 +185,35 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
     };
   }, [gameStarted, tasks, killCount, rapidFire, enemies.length]);
 
+  // Auto-shoot timer
+  useEffect(() => {
+    if (!gameStarted) return;
+
+    const autoShootInterval = setInterval(() => {
+      playSound('shoot');
+      const newBullet: Bullet = {
+        id: `bullet-${Date.now()}-${Math.random()}`,
+        x: playerX + 40,
+        y: playerY,
+        size: rapidFire ? 12 : 8,
+      };
+      setBullets(prev => [...prev, newBullet]);
+    }, rapidFire ? 100 : 200); // Shoot every 200ms (5 shots/sec)
+
+    return () => clearInterval(autoShootInterval);
+  }, [gameStarted, playerX, playerY, rapidFire]);
+
   // Game loop
   useEffect(() => {
     if (!gameStarted) return;
 
     const gameLoop = () => {
-      // Update enemies with PSYCHEDELIC motion!
+      // Update enemies - simple arcade style
       setEnemies(prev =>
         prev
           .map(e => ({
             ...e,
             x: e.x - e.speed,
-            rotation: (e.rotation || 0) + (e.isBoss ? 2 : 1),
-            scale: e.isBoss ? 1 + Math.sin(Date.now() / 200) * 0.15 : 1,
-            hue: ((e.hue || 0) + (e.isBoss ? 2 : 0.5)) % 360,
           }))
           .filter(e => e.x > -200)
       );
@@ -413,10 +428,10 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
             START GAME
           </button>
           <p className="text-sm text-white/40 mt-12">
-            🖱️ Move mouse anywhere • ⌨️ WASD/Arrows (all directions) • 🔫 Click/Space to shoot
+            🖱️ Move mouse/touch to control ship • Auto-shoots continuously!
           </p>
           <p className="text-xs text-white/30 mt-2">
-            👆 Touch works too! • Destroy todos = Complete tasks
+            ⌨️ Also works with WASD/Arrow keys • Destroy todos = Complete tasks
           </p>
         </motion.div>
       ) : (
@@ -508,119 +523,74 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
             ))}
           </AnimatePresence>
 
-          {/* Enemies - PSYCHEDELIC TODO ROBOTS! */}
+          {/* Enemies - RETRO ARCADE STYLE! */}
           <AnimatePresence>
             {enemies.map(enemy => (
               <motion.div
                 key={enemy.id}
-                initial={{ opacity: 0, scale: enemy.isBoss ? 0.3 : 0.5, rotate: -20 }}
-                animate={{
-                  opacity: 1,
-                  scale: enemy.scale || 1,
-                  rotate: enemy.rotation || 0,
-                }}
-                exit={{ opacity: 0, scale: 0, rotate: 360 }}
-                transition={{ rotate: { duration: 0 } }}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0 }}
                 className="absolute"
                 style={{
                   left: enemy.x,
                   top: enemy.y,
-                  width: enemy.isBoss ? 200 : 140,
-                  height: enemy.isBoss ? 100 : 50,
+                  width: enemy.isBoss ? 120 : 60,
+                  height: enemy.isBoss ? 120 : 60,
                   transform: 'translate(-50%, -50%)',
                 }}
               >
                 {enemy.isBoss ? (
-                  // PSYCHEDELIC BOSS ROBOT!
+                  // BOSS - Big red square with border
                   <div className="relative w-full h-full">
-                    {/* Robot body with rainbow gradient */}
                     <div
-                      className="w-full h-full flex items-center justify-center font-black text-white px-3 relative"
+                      className="w-full h-full"
                       style={{
-                        background: `linear-gradient(${enemy.hue || 0}deg,
-                          hsl(${enemy.hue || 0}, 100%, 50%),
-                          hsl(${((enemy.hue || 0) + 120) % 360}, 100%, 50%),
-                          hsl(${((enemy.hue || 0) + 240) % 360}, 100%, 50%))`,
-                        borderRadius: '20px',
-                        border: '4px solid #FFD700',
-                        boxShadow: `0 0 40px hsl(${enemy.hue || 0}, 100%, 50%), 0 0 80px hsl(${((enemy.hue || 0) + 180) % 360}, 100%, 50%)`,
-                        fontSize: '16px',
-                        textShadow: '0 0 10px rgba(0,0,0,0.8)',
+                        backgroundColor: '#EF4444',
+                        border: '4px solid #FFFFFF',
+                        boxShadow: '0 0 30px rgba(239, 68, 68, 0.8)',
                       }}
-                    >
-                      {/* Robot eyes */}
-                      <div className="absolute -top-3 left-1/4 w-8 h-8 bg-white rounded-full animate-pulse"
-                        style={{ boxShadow: '0 0 20px #00FFFF' }} />
-                      <div className="absolute -top-3 right-1/4 w-8 h-8 bg-white rounded-full animate-pulse"
-                        style={{ boxShadow: '0 0 20px #FF00FF', animationDelay: '0.5s' }} />
-
-                      {/* Robot antenna */}
-                      <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-2 h-10 bg-gradient-to-t from-yellow-400 to-pink-500" />
-                      <div className="absolute -top-14 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-purple-600 animate-spin" />
-
-                      <span className="truncate z-10 relative">🤖 {enemy.task.title.substring(0, 20)} 🤖</span>
-                    </div>
-
+                    />
                     {/* Health bar */}
-                    <div className="absolute -bottom-5 left-0 right-0 h-2 bg-gray-700 rounded-full border-2 border-white">
+                    <div className="absolute -bottom-4 left-0 right-0 h-2 bg-gray-900 border border-white">
                       <div
-                        className="h-full rounded-full transition-all"
-                        style={{
-                          width: `${((enemy.health || 1) / 10) * 100}%`,
-                          background: `linear-gradient(90deg, #00FF00, #FFFF00, #FF0000)`,
-                        }}
+                        className="h-full bg-red-500 transition-all"
+                        style={{ width: `${((enemy.health || 1) / 10) * 100}%` }}
                       />
                     </div>
-
-                    {/* Floating "TODILOOOO" text */}
-                    <motion.div
-                      animate={{
-                        y: [0, -10, 0],
-                        opacity: [0.6, 1, 0.6],
-                      }}
-                      transition={{ duration: 1, repeat: Infinity }}
-                      className="absolute -top-16 left-1/2 -translate-x-1/2 text-2xl font-black whitespace-nowrap"
-                      style={{
-                        color: `hsl(${enemy.hue || 0}, 100%, 50%)`,
-                        textShadow: '0 0 10px #000, 0 0 20px #FFF',
-                      }}
-                    >
-                      TODILOOOO!
-                    </motion.div>
                   </div>
                 ) : (
-                  // Normal enemy - simple with slight rainbow
+                  // Normal enemy - simple colored square
                   <div
-                    className="w-full h-full flex items-center justify-center font-bold text-white px-3 relative"
+                    className="w-full h-full"
                     style={{
-                      background: `linear-gradient(135deg, ${CATEGORY_COLORS[enemy.task.category]}, hsl(${enemy.hue || 0}, 70%, 50%))`,
-                      clipPath: 'polygon(100% 50%, 0% 10%, 0% 90%)',
-                      border: enemy.task.urgent ? '2px solid #EF4444' : 'none',
-                      fontSize: '11px',
+                      backgroundColor: CATEGORY_COLORS[enemy.task.category] || '#D97757',
+                      border: enemy.task.urgent ? '3px solid #FFFFFF' : '2px solid #1A1A1A',
+                      boxShadow: enemy.task.urgent
+                        ? `0 0 20px ${CATEGORY_COLORS[enemy.task.category]}`
+                        : 'none',
                     }}
-                  >
-                    <span className="truncate ml-3">{enemy.task.title.substring(0, 18)}</span>
-                  </div>
+                  />
                 )}
               </motion.div>
             ))}
           </AnimatePresence>
 
-          {/* Explosions */}
+          {/* Explosions - SCREEN-FILLING PARTICLES! */}
           <AnimatePresence>
             {explosions.map(explosion => (
               <motion.div
                 key={explosion.id}
                 initial={{ opacity: 1, scale: 0 }}
-                animate={{ opacity: 0, scale: 3 }}
+                animate={{ opacity: 0, scale: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: explosion.title ? 2 : 1 }}
+                transition={{ duration: explosion.title ? 2.5 : 1.2 }}
                 className="absolute z-50"
                 style={{
                   left: explosion.x,
                   top: explosion.y,
-                  width: explosion.title ? 300 : 100,
-                  height: explosion.title ? 300 : 100,
+                  width: 10,
+                  height: 10,
                   transform: 'translate(-50%, -50%)',
                   pointerEvents: 'none',
                 }}
@@ -631,18 +601,18 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
                     initial={{ opacity: 1, scale: 0, rotate: -10 }}
                     animate={{
                       opacity: [1, 1, 0],
-                      scale: [0, 1.5, 2],
-                      rotate: [- 10, 5, 10],
-                      y: [-50, -100, -150],
+                      scale: [0, 2, 3],
+                      rotate: [-10, 5, 10],
+                      y: [-50, -150, -250],
                     }}
-                    transition={{ duration: 1.5 }}
-                    className="absolute inset-0 flex items-center justify-center"
+                    transition={{ duration: 2 }}
+                    className="absolute flex items-center justify-center whitespace-nowrap"
                   >
                     <div
-                      className="font-black text-4xl text-center drop-shadow-lg px-4"
+                      className="font-black text-5xl drop-shadow-lg px-4"
                       style={{
                         color: explosion.color,
-                        textShadow: `0 0 20px ${explosion.color}, 0 0 40px ${explosion.color}`,
+                        textShadow: `0 0 30px ${explosion.color}, 0 0 60px ${explosion.color}, 0 0 90px #FFFFFF`,
                       }}
                     >
                       ✓ {explosion.title}
@@ -650,13 +620,13 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
                   </motion.div>
                 )}
 
-                {/* MEGA PARTICLES - 80 för bossar, 40 för vanliga! */}
-                {[...Array(explosion.title ? 80 : 40)].map((_, i) => {
+                {/* MASSIVE SCREEN-FILLING PARTICLES! */}
+                {[...Array(explosion.title ? 200 : 100)].map((_, i) => {
                   const isBoss = explosion.title;
-                  const particleCount = isBoss ? 80 : 40;
+                  const particleCount = isBoss ? 200 : 100;
                   const angle = (i * Math.PI * 2) / particleCount;
-                  const distance = isBoss ? 180 : 80;
-                  const size = isBoss ? (Math.random() * 12 + 8) : (Math.random() * 8 + 6);
+                  const distance = isBoss ? 600 : 300; // MUCH larger distance!
+                  const size = isBoss ? (Math.random() * 20 + 10) : (Math.random() * 15 + 8);
 
                   return (
                     <motion.div
