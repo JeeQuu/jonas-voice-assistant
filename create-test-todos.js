@@ -12,45 +12,45 @@ const API_KEY = 'JeeQuuFjong';
 
 const testTodos = [
   {
-    summary: 'Ring Gun om fredagsmiddag',
-    full_content: 'Ring Gun och bekräfta fredagsmiddag kl 18:00',
-    importance_level: 4,
-    tags: ['familj'],
-    deadline: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString() // 2 hours from now
-  },
-  {
-    summary: 'Lunch med Karin',
-    full_content: 'Träffa Karin för lunch på Sjöbaren kl 12:00',
-    importance_level: 3,
-    tags: ['familj'],
+    title: 'Lunch med Karin',
+    content: 'Träffa Karin för lunch på Sjöbaren kl 12:00',
+    importance: 3,
     deadline: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString() // 4 hours from now
   },
   {
-    summary: 'Code review för Liseberg projektet',
-    full_content: 'Gå igenom Philip\'s kod för animation projektion',
-    importance_level: 5,
-    tags: ['jobb'],
+    title: 'Code review för Liseberg projektet',
+    content: 'Gå igenom Philip\'s kod för animation projektion',
+    importance: 5,
     deadline: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString() // 6 hours from now
   },
   {
-    summary: 'Discgolf med Henrik',
-    full_content: 'Slottsskogen kl 17:00',
-    importance_level: 2,
-    tags: ['hälsa'],
+    title: 'Discgolf med Henrik',
+    content: 'Slottsskogen kl 17:00',
+    importance: 2,
     deadline: new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString() // 9 hours from now
   },
   {
-    summary: 'Yoga stretch',
-    full_content: '15 min yoga innan sänggåendet',
-    importance_level: 3,
-    tags: ['hälsa']
+    title: 'Yoga stretch',
+    content: '15 min yoga innan sänggåendet',
+    importance: 3
   },
   {
-    summary: 'Sonja till skolan',
-    full_content: 'Packa matsäck och lämna kl 07:30',
-    importance_level: 4,
-    tags: ['familj'],
+    title: 'Sonja till skolan',
+    content: 'Packa matsäck och lämna kl 07:30',
+    importance: 4,
     deadline: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString() // Tomorrow morning
+  },
+  {
+    title: 'Client meeting',
+    content: 'Rune @ Liseberg kl 10:30',
+    importance: 4,
+    deadline: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    title: 'Kvällsmat familjen',
+    content: 'Laga middag kl 19:00',
+    importance: 3,
+    deadline: new Date(Date.now() + 11 * 60 * 60 * 1000).toISOString()
   }
 ];
 
@@ -100,13 +100,13 @@ async function main() {
 
   for (const todo of testTodos) {
     try {
-      console.log(`Creating: "${todo.summary}"...`);
+      console.log(`Creating: "${todo.title}"...`);
       const result = await createTodo(todo);
       console.log(`✅ Created todo with ID: ${result.todo.id}`);
       console.log(`   Summary: ${result.todo.summary || '(null)'}`);
       console.log(`   Full content: ${result.todo.full_content || '(null)'}\n`);
     } catch (error) {
-      console.error(`❌ Failed to create "${todo.summary}":`, error.message, '\n');
+      console.error(`❌ Failed to create "${todo.title}":`, error.message, '\n');
     }
   }
 

@@ -21,7 +21,7 @@ export function useTasks(dayOffset: number = 0) {
     try {
       const [todosRes, calendarRes] = await Promise.all([
         axios.get(`${API_URL}/api/todos`, {
-          // Get ALL todos (including completed) for now
+          params: { status: 'pending' }, // Only get incomplete todos
           headers: { 'x-api-key': API_KEY }
         }),
         axios.get(`${API_URL}/api/calendar/events`, {
