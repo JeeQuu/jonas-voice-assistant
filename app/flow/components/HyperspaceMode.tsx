@@ -28,17 +28,17 @@ interface FlyingItem {
 }
 
 const CATEGORY_COLORS = {
-  todo: '#00D9FF',      // Cyan
-  email: '#FF6B9D',     // Pink
-  project: '#FFD700',   // Gold
-  jobb: '#D97757',
-  familj: '#5B9AAA',
-  hälsa: '#7BA05B',
+  todo: '#E8E8E8',      // Soft white
+  email: '#C4B5A0',     // Warm beige
+  project: '#A8B8C8',   // Cool blue-grey
+  jobb: '#D4C4B0',      // Warm sand
+  familj: '#B8C8D8',    // Soft blue
+  hälsa: '#C8D4C0',     // Soft sage
 };
 
 export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModeProps) {
   const [items, setItems] = useState<FlyingItem[]>([]);
-  const [speed, setSpeed] = useState(1);
+  const [speed, setSpeed] = useState(0.3); // Much slower, elegant
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
 
@@ -49,20 +49,23 @@ export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModePr
   const loadHyperspaceData = async () => {
     const flyingItems: FlyingItem[] = [];
 
-    // Add todos as flying stars
+    // Add todos as flying stars - slower, more spread out
     tasks.forEach((task, i) => {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.random() * 800 + 200;
+
       flyingItems.push({
         id: `todo-${task.id}`,
         text: task.title,
         type: 'todo',
         importance: task.urgent ? 5 : 3,
-        x: (Math.random() - 0.5) * 2000,
-        y: (Math.random() - 0.5) * 1000,
-        z: Math.random() * 3000 + 1000,
-        speed: task.urgent ? 8 : 5,
-        size: task.urgent ? 24 : 16,
+        x: Math.cos(angle) * radius,
+        y: Math.sin(angle) * radius,
+        z: Math.random() * 5000 + 2000,
+        speed: task.urgent ? 3 : 2,
+        size: task.urgent ? 20 : 14,
         color: CATEGORY_COLORS[task.category] || CATEGORY_COLORS.todo,
-        trail: task.urgent,
+        trail: false, // No trails, cleaner
       });
     });
 
@@ -74,18 +77,21 @@ export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModePr
       });
 
       (emailRes.data.emails || []).slice(0, 15).forEach((email: any, i: number) => {
+        const angle = Math.random() * Math.PI * 2;
+        const radius = Math.random() * 800 + 200;
+
         flyingItems.push({
           id: `email-${email.id || i}`,
-          text: `📧 ${email.subject || 'No subject'}`,
+          text: email.subject || 'No subject',
           type: 'email',
           importance: 4,
-          x: (Math.random() - 0.5) * 2000,
-          y: (Math.random() - 0.5) * 1000,
-          z: Math.random() * 3000 + 1000,
-          speed: 6,
-          size: 18,
+          x: Math.cos(angle) * radius,
+          y: Math.sin(angle) * radius,
+          z: Math.random() * 5000 + 2000,
+          speed: 2.5,
+          size: 16,
           color: CATEGORY_COLORS.email,
-          trail: email.unread,
+          trail: false,
         });
       });
     } catch (error) {
@@ -100,18 +106,21 @@ export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModePr
       });
 
       (memoryRes.data.memories || []).slice(0, 8).forEach((memory: any, i: number) => {
+        const angle = Math.random() * Math.PI * 2;
+        const radius = Math.random() * 800 + 200;
+
         flyingItems.push({
           id: `project-${memory.id || i}`,
-          text: `⭐ ${memory.summary || memory.full_content?.substring(0, 50) || 'Project'}`,
+          text: memory.summary || memory.full_content?.substring(0, 50) || 'Project',
           type: 'project',
           importance: memory.importance_level || 5,
-          x: (Math.random() - 0.5) * 2000,
-          y: (Math.random() - 0.5) * 1000,
-          z: Math.random() * 3000 + 1000,
-          speed: 4,
-          size: 20,
+          x: Math.cos(angle) * radius,
+          y: Math.sin(angle) * radius,
+          z: Math.random() * 5000 + 2000,
+          speed: 2,
+          size: 18,
           color: CATEGORY_COLORS.project,
-          trail: true,
+          trail: false,
         });
       });
     } catch (error) {
@@ -121,15 +130,23 @@ export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModePr
     setItems(flyingItems);
   };
 
-  // Hyperspace animation loop
+  // Hyperspace animation loop - slow and elegant
   useEffect(() => {
     const animate = () => {
       setItems(prev => prev.map(item => {
+        // Move towards center (decrease z)
         let newZ = item.z - item.speed * speed;
 
         // Reset to far distance when passing camera
-        if (newZ <= 0) {
-          newZ = 3000 + Math.random() * 1000;
+        if (newZ <= 100) {
+          const angle = Math.random() * Math.PI * 2;
+          const radius = Math.random() * 800 + 200;
+          return {
+            ...item,
+            z: 5000 + Math.random() * 2000,
+            x: Math.cos(angle) * radius,
+            y: Math.sin(angle) * radius,
+          };
         }
 
         return { ...item, z: newZ };
@@ -150,9 +167,9 @@ export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModePr
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen bg-black overflow-hidden"
+      className="relative w-full h-screen overflow-hidden"
       style={{
-        background: 'radial-gradient(ellipse at center, #000814 0%, #000000 100%)',
+        background: 'radial-gradient(ellipse at center, #0A0A12 0%, #000000 100%)',
       }}
     >
       {/* Stars in background */}
@@ -202,59 +219,44 @@ export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModePr
               animate={{ opacity }}
               exit={{ opacity: 0 }}
             >
-              {/* Trail effect */}
-              {item.trail && (
-                <motion.div
-                  className="absolute"
-                  style={{
-                    width: size * 4,
-                    height: 2,
-                    background: `linear-gradient(90deg, transparent, ${item.color}, transparent)`,
-                    left: -size * 2,
-                    top: size / 2,
-                    opacity: opacity * 0.5,
-                    filter: 'blur(2px)',
-                  }}
-                />
-              )}
+              {/* Elegant soft glow */}
+              <div
+                className="absolute rounded-full"
+                style={{
+                  width: size * 2,
+                  height: size * 2,
+                  left: -size / 2,
+                  top: -size / 2,
+                  background: `radial-gradient(circle, ${item.color}40, transparent 70%)`,
+                  filter: 'blur(8px)',
+                }}
+              />
 
-              {/* Item glow */}
+              {/* Item dot */}
               <div
                 className="absolute rounded-full"
                 style={{
                   width: size,
                   height: size,
-                  background: `radial-gradient(circle, ${item.color}FF, ${item.color}00)`,
-                  boxShadow: `0 0 ${size}px ${item.color}`,
-                  filter: `blur(${size / 4}px)`,
-                }}
-              />
-
-              {/* Item core */}
-              <div
-                className="absolute rounded-full"
-                style={{
-                  width: size / 2,
-                  height: size / 2,
-                  left: size / 4,
-                  top: size / 4,
                   backgroundColor: item.color,
-                  boxShadow: `0 0 ${size / 2}px ${item.color}`,
+                  opacity: opacity * 0.9,
+                  boxShadow: `0 0 ${size * 1.5}px ${item.color}40`,
                 }}
               />
 
-              {/* Text label (only for close items) */}
-              {item.z < 1500 && (
+              {/* Text label (only for very close items, clean typography) */}
+              {item.z < 2000 && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: opacity * 0.8, scale: 1 }}
-                  className="absolute whitespace-nowrap font-bold"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: opacity * 0.7 }}
+                  className="absolute whitespace-nowrap font-light"
                   style={{
-                    left: size + 10,
-                    top: size / 4,
-                    fontSize: Math.max(10, size / 1.5),
+                    left: size + 16,
+                    top: -size / 4,
+                    fontSize: Math.max(11, size * 0.8),
                     color: item.color,
-                    textShadow: `0 0 10px ${item.color}, 0 0 20px ${item.color}`,
+                    letterSpacing: '0.05em',
+                    fontWeight: 300,
                   }}
                 >
                   {item.text}
@@ -265,46 +267,45 @@ export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModePr
         })}
       </AnimatePresence>
 
-      {/* HUD / Info overlay */}
-      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-50">
+      {/* Minimal HUD */}
+      <div className="absolute top-12 left-1/2 transform -translate-x-1/2 z-50">
         <motion.h1
-          animate={{ opacity: [0.7, 1, 0.7] }}
-          transition={{ duration: 3, repeat: Infinity }}
-          className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600"
-          style={{ textShadow: '0 0 30px rgba(0, 217, 255, 0.5)' }}
+          animate={{ opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          className="text-5xl font-thin tracking-[0.3em] text-white/40"
         >
           HYPERSPACE
         </motion.h1>
-        <p className="text-center text-cyan-400 text-sm mt-2 font-mono">
-          {items.length} ITEMS IN FLIGHT
+        <p className="text-center text-white/20 text-xs mt-3 font-light tracking-wider">
+          {items.length} items
         </p>
       </div>
 
-      {/* Speed control */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-4">
+      {/* Minimal speed control */}
+      <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-6">
         <button
-          onClick={() => setSpeed(Math.max(0.5, speed - 0.5))}
-          className="bg-cyan-500/20 border-2 border-cyan-400 text-cyan-400 px-6 py-3 font-black hover:bg-cyan-500/40 transition-all"
+          onClick={() => setSpeed(Math.max(0.1, speed - 0.1))}
+          className="bg-white/5 border border-white/10 text-white/40 px-5 py-2 text-sm font-light hover:bg-white/10 hover:text-white/60 transition-all tracking-wider"
         >
-          SLOWER
+          slower
         </button>
-        <div className="bg-black/50 border-2 border-cyan-400 px-6 py-3 font-mono text-cyan-400 font-black">
-          SPEED: {speed.toFixed(1)}x
+        <div className="bg-white/5 border border-white/10 px-5 py-2 text-sm font-mono text-white/30 tracking-wider">
+          {speed.toFixed(1)}x
         </div>
         <button
-          onClick={() => setSpeed(Math.min(3, speed + 0.5))}
-          className="bg-cyan-500/20 border-2 border-cyan-400 text-cyan-400 px-6 py-3 font-black hover:bg-cyan-500/40 transition-all"
+          onClick={() => setSpeed(Math.min(2, speed + 0.1))}
+          className="bg-white/5 border border-white/10 text-white/40 px-5 py-2 text-sm font-light hover:bg-white/10 hover:text-white/60 transition-all tracking-wider"
         >
-          FASTER
+          faster
         </button>
       </div>
 
-      {/* Exit button */}
+      {/* Minimal exit button */}
       <button
         onClick={onToggleMode}
-        className="fixed top-6 right-6 bg-purple-600/20 border-2 border-purple-400 text-purple-400 px-6 py-3 font-black hover:bg-purple-600/40 transition-all z-50"
+        className="fixed top-8 right-8 bg-white/5 border border-white/10 text-white/40 px-4 py-2 text-xs font-light hover:bg-white/10 hover:text-white/60 transition-all z-50 tracking-wider"
       >
-        EXIT HYPERSPACE
+        exit
       </button>
 
       {/* CSS animation for stars */}
