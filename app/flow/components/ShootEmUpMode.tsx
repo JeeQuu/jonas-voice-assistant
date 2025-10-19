@@ -322,28 +322,16 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
     };
   }, [gameStarted, combo, onCompleteTask]);
 
-  // Controls - Mouse (FREE MOVEMENT!), Touch, AND Keyboard!
+  // Controls - SIMPLIFIED - just track mouse position directly!
   useEffect(() => {
     if (!gameStarted || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
 
-    const shootBullet = () => {
-      playSound('shoot');
-      const newBullet: Bullet = {
-        id: `bullet-${Date.now()}-${Math.random()}`,
-        x: playerX + 40,
-        y: playerY,
-        size: rapidFire ? 12 : 8,
-      };
-      setBullets(prev => [...prev, newBullet]);
-    };
-
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       const x = Math.max(30, Math.min(CANVAS_WIDTH - 30, e.clientX - rect.left));
       const y = Math.max(30, Math.min(CANVAS_HEIGHT - 30, e.clientY - rect.top));
-      console.log('🖱️ Mouse move:', x, y);
       setPlayerX(x);
       setPlayerY(y);
     };
@@ -360,7 +348,7 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      const speed = 15;
+      const speed = 20;
       if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
         setPlayerY(y => Math.max(30, y - speed));
       } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
@@ -369,39 +357,23 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
         setPlayerX(x => Math.max(30, x - speed));
       } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
         setPlayerX(x => Math.min(CANVAS_WIDTH - 30, x + speed));
-      } else if (e.key === ' ' || e.key === 'Enter') {
-        e.preventDefault();
-        shootBullet();
       }
     };
 
-    const handleClick = (e: MouseEvent) => {
-      e.preventDefault();
-      shootBullet();
-    };
-
-    const handleTouchStart = (e: TouchEvent) => {
-      e.preventDefault();
-      shootBullet();
-    };
-
-    // Add listeners
-    canvas.addEventListener('mousemove', handleMouseMove);
+    // Add listeners with immediate invocation
+    canvas.addEventListener('mousemove', handleMouseMove, { passive: true });
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-    canvas.addEventListener('click', handleClick);
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
     window.addEventListener('keydown', handleKeyDown);
 
-    console.log('🎮 Controls initialized - mouse should work now!');
+    // Force a console log to verify this runs
+    console.log('🎮 Controls attached to canvas at', Date.now());
 
     return () => {
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('touchmove', handleTouchMove);
-      canvas.removeEventListener('click', handleClick);
-      canvas.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [gameStarted, playerX, playerY, rapidFire]);
+  }, [gameStarted]);
 
   return (
     <div className="relative w-full h-screen bg-[#0A0A0A] flex items-center justify-center overflow-hidden">
