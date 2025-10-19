@@ -328,6 +328,7 @@ export default function ShootEmUpMode({ tasks, onToggleMode, onCompleteTask }: S
       const rect = canvas.getBoundingClientRect();
       const x = Math.max(30, Math.min(CANVAS_WIDTH - 30, e.clientX - rect.left));
       const y = Math.max(30, Math.min(CANVAS_HEIGHT - 30, e.clientY - rect.top));
+      console.log('🖱️ Mouse move:', x, y);
       setPlayerX(x);
       setPlayerY(y);
     };

@@ -38,7 +38,7 @@ const CATEGORY_COLORS = {
 
 export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModeProps) {
   const [items, setItems] = useState<FlyingItem[]>([]);
-  const [speed, setSpeed] = useState(0.05); // VERY slow, elegant
+  const [speed, setSpeed] = useState(0.01); // EXTREMELY slow, meditative
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
 
@@ -62,7 +62,7 @@ export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModePr
         x: Math.cos(angle) * radius,
         y: Math.sin(angle) * radius,
         z: Math.random() * 5000 + 2000,
-        speed: task.urgent ? 1.5 : 1.0, // Reduced from 3:2 to 1.5:1
+        speed: task.urgent ? 0.8 : 0.5, // Ultra slow
         size: task.urgent ? 20 : 14,
         color: CATEGORY_COLORS[task.category] || CATEGORY_COLORS.todo,
         trail: false, // No trails, cleaner
@@ -88,7 +88,7 @@ export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModePr
           x: Math.cos(angle) * radius,
           y: Math.sin(angle) * radius,
           z: Math.random() * 5000 + 2000,
-          speed: 1.2, // Reduced from 2.5
+          speed: 0.6, // Ultra slow
           size: 16,
           color: CATEGORY_COLORS.email,
           trail: false,
@@ -117,7 +117,7 @@ export default function HyperspaceMode({ tasks, onToggleMode }: HyperspaceModePr
           x: Math.cos(angle) * radius,
           y: Math.sin(angle) * radius,
           z: Math.random() * 5000 + 2000,
-          speed: 1.0, // Reduced from 2
+          speed: 0.5, // Ultra slow
           size: 18,
           color: CATEGORY_COLORS.project,
           trail: false,
