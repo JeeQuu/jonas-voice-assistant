@@ -121,7 +121,7 @@ export default function FlowDashboard() {
       onDoubleClick={toggleMode}
     >
       {mode === 'magnetic' ? (
-        <MagneticField tasks={tasks} onToggleMode={toggleMode} />
+        <MagneticField tasks={tasks} onToggleMode={toggleMode} onCompleteTask={markComplete} />
       ) : mode === 'flow' ? (
         <FlowMode onToggleMode={toggleMode} />
       ) : mode === 'focus' ? (

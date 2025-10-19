@@ -9,9 +9,10 @@ import { usePhysics } from '../hooks/usePhysics';
 interface MagneticFieldProps {
   tasks: Task[];
   onToggleMode: () => void;
+  onCompleteTask: (id: string) => void;
 }
 
-export default function MagneticField({ tasks, onToggleMode }: MagneticFieldProps) {
+export default function MagneticField({ tasks, onToggleMode, onCompleteTask }: MagneticFieldProps) {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -46,6 +47,9 @@ export default function MagneticField({ tasks, onToggleMode }: MagneticFieldProp
   };
 
   const handleCardTap = (id: string) => {
+    // Toggle todo completion on tap
+    onCompleteTask(id);
+    // Also toggle selection visual feedback
     setSelectedCardId(selectedCardId === id ? null : id);
   };
 
