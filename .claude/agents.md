@@ -91,7 +91,14 @@ GMAIL_APP_PASSWORD=[Gmail app password]
 GOOGLE_CLIENT_ID=[OAuth client ID]
 GOOGLE_CLIENT_SECRET=[OAuth client secret]
 GOOGLE_REFRESH_TOKEN=[OAuth refresh token]
+GOOGLE_CALENDAR_ID=[Personal calendar, e.g., jonasquant@gmail.com]
+GOOGLE_SHARED_CALENDAR_ID=1np85dkiru57r752i9ssseuuic@group.calendar.google.com
 ```
+
+**Multiple Calendars**:
+The system fetches from TWO calendars simultaneously:
+1. `GOOGLE_CALENDAR_ID` - Personal calendar (work, projects, Liseberg, etc.)
+2. `GOOGLE_SHARED_CALENDAR_ID` - Shared "Lina och Jonas" calendar (family events with Lina)
 
 ### Frontend (Vercel - jonas-flow-dashboard)
 ```
