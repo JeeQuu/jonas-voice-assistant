@@ -97,25 +97,84 @@ quant-show/                       # Local folder (renamed 2025-10-19)
 
 ## Environment Variables
 
-### Backend (Render)
-```
-SUPABASE_URL=https://[project].supabase.co
-SUPABASE_SERVICE_KEY=[key without \n characters!]
-OPENAI_KEY=[OpenAI API key]
-OPENROUTER_API_KEY=[OpenRouter for Claude 3.5 Sonnet]
-GMAIL_USER=[Gmail address]
-GMAIL_APP_PASSWORD=[Gmail app password]
-GOOGLE_CLIENT_ID=[OAuth client ID]
-GOOGLE_CLIENT_SECRET=[OAuth client secret]
-GOOGLE_REFRESH_TOKEN=[OAuth refresh token]
-GOOGLE_CALENDAR_ID=[Personal calendar, e.g., jonasquant@gmail.com]
-GOOGLE_SHARED_CALENDAR_ID=1np85dkiru57r752i9ssseuuic@group.calendar.google.com
-```
+### Backend (Render) - Complete Checklist
+
+The system uses **25 different environment variables**. Here's the complete list organized by importance:
+
+#### ✅ CRITICAL (Must Have)
+
+**Database:**
+- `SUPABASE_URL` - https://[project].supabase.co
+- `SUPABASE_SERVICE_KEY` - eyJhbGc... (⚠️ NO `\n` characters!)
+
+**AI Services:**
+- `OPENAI_KEY` - Actually contains OpenRouter API key (confusing naming!)
+  - Used for Claude 3.5 Sonnet via openrouter.ai
+  - Alternative name in code: `OPENROUTER_API_KEY` (same value)
+
+**Gmail:**
+- `GMAIL_USER` - Gmail address (e.g., jonasquant@gmail.com)
+- `GMAIL_APP_PASSWORD` - Gmail app-specific password (16 chars)
+
+**Google Calendar:**
+- `SERVICE_ACCOUNT_JSON` - Full JSON credentials for Google Service Account
+  - OR use `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` (OAuth)
+- `GOOGLE_CALENDAR_ID` - Personal calendar (e.g., jonasquant@gmail.com)
+- `GOOGLE_SHARED_CALENDAR_ID` - Shared calendar: `1np85dkiru57r752i9ssseuuic@group.calendar.google.com`
 
 **Multiple Calendars**:
 The system fetches from TWO calendars simultaneously:
 1. `GOOGLE_CALENDAR_ID` - Personal calendar (work, projects, Liseberg, etc.)
 2. `GOOGLE_SHARED_CALENDAR_ID` - Shared "Lina och Jonas" calendar (family events with Lina)
+
+#### 🔧 IMPORTANT (Feature-Specific)
+
+**ElevenLabs (Text-to-Speech):**
+- `ELEVENLABS_API_KEY` - ElevenLabs API key
+  - Alternative name: `ELEVEN_LABS_KEY`
+- `ELEVENLABS_VOICE_ID` - Voice ID for TTS (optional)
+
+**Dropbox (Receipt Storage):**
+- `DROPBOX_ACCESS_TOKEN` - OAuth access token
+- `DROPBOX_REFRESH_TOKEN` - OAuth refresh token
+- `DROPBOX_APP_KEY` - App key
+- `DROPBOX_APP_SECRET` - App secret
+
+#### 📋 OPTIONAL
+
+- `API_KEY` - Auth key for API endpoints (default: `JeeQuuFjong`)
+- `PORT` - Server port (Render sets automatically)
+- `NODE_ENV` - Environment (Render sets to "production")
+- `EMAIL_SENDER_NAME` - Name in sent emails (default: "Jonas Assistant")
+- `YOUR_EMAIL` - Used by some cron jobs (usually same as `GMAIL_USER`)
+
+#### 🗑️ DEPRECATED (Ignore These)
+
+- `CLAUDE_KEY` - Old, replaced by `OPENAI_KEY`
+- `CALENDAR_ID` - Old, replaced by `GOOGLE_CALENDAR_ID`
+- `SUPABASE_ANON_KEY` - Not needed, using `SERVICE_KEY`
+
+### How to Verify Env Vars
+
+**Test via health endpoint:**
+```bash
+curl https://quant-show-api.onrender.com/api/health -H "x-api-key:JeeQuuFjong"
+```
+
+Should return all services as `true`:
+```json
+{
+  "success": true,
+  "services": {
+    "google_calendar": true,
+    "openrouter": true,
+    "eleven_labs": true,
+    "supabase": true
+  }
+}
+```
+
+If any service shows `false`, check that env var in Render Dashboard.
 
 ### Frontend (Vercel - jonas-flow-dashboard)
 ```
