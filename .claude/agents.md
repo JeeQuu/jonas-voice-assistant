@@ -1,5 +1,22 @@
 # Quant Show - AI Assistant & FLOW Dashboard
 
+## ⚠️ CRITICAL: READ THIS FIRST
+
+**If you are a new AI context (Claude/GPT/etc), you MUST read these files BEFORE doing anything:**
+
+1. **`/Users/jonasquantmusicab/Dropbox/PC SYNC/CURSOR SHARED/QUANT SHOW/SUPABASE_DATABASE_SCHEMA.md`**
+   - THE definitive source of truth for all 19 Supabase tables
+   - Contains table schemas, relationships, query examples, and common pitfalls
+   - **DO NOT GUESS** how the database works - read this file first!
+
+2. **This file (`agents.md`)**
+   - Project structure, deployment info, API endpoints
+   - Git workflow, environment variables, troubleshooting
+
+**Why this matters**: Jonas has experienced months of issues with new LLM contexts constantly misunderstanding the Supabase structure. The database has 19 tables across 5 subsystems. ALWAYS refer to the schema doc when working with the database.
+
+---
+
 ## ✅ Project Naming (FIXED 2025-10-19)
 **Local folder**: `quant-show/` ✅ (renamed from jonas-voice-assistant)
 - **Backend**: `quant-show-api` (Render) ✅
