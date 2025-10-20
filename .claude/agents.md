@@ -116,16 +116,36 @@ The system uses **25 different environment variables**. Here's the complete list
 - `GMAIL_USER` - Gmail address (e.g., jonasquant@gmail.com)
 - `GMAIL_APP_PASSWORD` - Gmail app-specific password (16 chars)
 
-**Google Calendar:**
+**Google Calendar:** ✅ FULLY WORKING 2025-10-20
 - `SERVICE_ACCOUNT_JSON` - Full JSON credentials for Google Service Account
   - OR use `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` (OAuth)
 - `GOOGLE_CALENDAR_ID` - Personal calendar (e.g., jonasquant@gmail.com)
 - `GOOGLE_SHARED_CALENDAR_ID` - Shared calendar: `1np85dkiru57r752i9ssseuuic@group.calendar.google.com`
+  - ⚠️ IMPORTANT: Service account must be added to shared calendar with "Make changes to events" permission!
+  - Service account email: `quant-show-api@skillful-source-456119-b2.iam.gserviceaccount.com`
 
 **Multiple Calendars**:
-The system fetches from TWO calendars simultaneously:
+The system supports TWO calendars with full READ/WRITE access:
 1. `GOOGLE_CALENDAR_ID` - Personal calendar (work, projects, Liseberg, etc.)
 2. `GOOGLE_SHARED_CALENDAR_ID` - Shared "Lina och Jonas" calendar (family events with Lina)
+
+**Calendar Write Access** (Added 2025-10-20):
+All calendar endpoints (POST/PATCH/DELETE) now support a `calendarId` parameter:
+- `calendarId: 'personal'` - Creates event in personal calendar (default)
+- `calendarId: 'shared'` - Creates event in shared "Lina och Jonas" calendar
+- `calendarId: '[explicit-id]'` - Creates event in any calendar by explicit ID
+
+Example usage:
+```javascript
+// Create event in shared calendar
+POST /api/calendar/events
+{
+  "summary": "Family dinner",
+  "start": "2025-10-22T18:00:00",
+  "end": "2025-10-22T20:00:00",
+  "calendarId": "shared"  // Goes to "Lina och Jonas" calendar
+}
+```
 
 #### 🔧 IMPORTANT (Feature-Specific)
 
@@ -237,12 +257,13 @@ The chat client uses a sophisticated 3-layer session closing system to ensure co
 - Gracefully closes session with AI summary
 - Located in: `app/chat/page.tsx`
 
-### Layer 3: Cronjob Safety Net
+### Layer 3: Cronjob Safety Net (✅ FIXED 2025-10-20)
 - **Every 15 minutes** cronjob finds orphaned sessions
-- Closes sessions inactive for **>5 minutes**
+- Closes sessions inactive for **>5 minutes** with messages
+- **Ghost sessions** (0 messages) are DELETED instead of closed
 - Runs even if frontend never closes
 - Located in: `api/cron/close-inactive-sessions.js`
-- Deployed on Render as cron job (✅ ACTIVE as of 2025-10-19)
+- Deployed on Render as cron job (curl-based, no env var issues)
 
 **Session Lifecycle:**
 1. `startSession()` creates new session in Supabase
@@ -250,6 +271,42 @@ The chat client uses a sophisticated 3-layer session closing system to ensure co
 3. Tool calls (like email send) append to session messages
 4. On close: AI generates summary, extracts topics, saves insights
 5. Status changes from 'active' to 'completed'
+6. **Ghost sessions** (0 messages, created by page loads/health checks) are auto-deleted
+
+## Memory System & Conversation Recall (✅ FIXED 2025-10-20)
+
+Brainolf can now remember past conversations through hierarchical memory:
+
+### Memory Search (`/api/memory-search`)
+Searches **4 sources** for complete memory:
+
+1. **`smart_memories`** - Emails, calendar events, insights (unlimited)
+2. **`conversation_sessions`** - Last 30 days of conversations (50 most recent)
+3. **`daily_summaries`** - Last 90 days of daily summaries
+4. **`weekly_summaries`** - Last year of weekly summaries
+
+**Previous Issue**: Only searched `smart_memories`, so Brainolf couldn't remember conversations.
+**Fixed**: 2025-10-20 - Now searches all 4 sources with relevance scoring.
+
+### Automated Memory Cleanup (3 Cronjobs)
+
+**1. close-inactive-sessions** (Every 15 minutes)
+- Closes orphaned sessions
+- Deletes ghost sessions (0 messages)
+- Command: `curl -X POST .../api/cron/close-sessions`
+
+**2. daily-memory-cleanup** (Every night 23:00 Stockholm time)
+- Creates daily summary from completed sessions
+- Extracts key insights and decisions
+- Archives sessions older than 7 days
+- Command: `curl -X POST .../api/cron/daily-cleanup`
+
+**3. weekly-memory-cleanup** (Sundays 23:30 Stockholm time)
+- Creates weekly summary from daily summaries
+- Compresses memory for long-term storage
+- Command: `curl -X POST .../api/cron/weekly-cleanup`
+
+All cronjobs use curl-based approach (no env var sync issues with Render).
 
 ## Email Memory
 
@@ -351,7 +408,46 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 - Health/scoring/combo mechanics
 - Multi-input support (mouse/touch/keyboard)
 
-## ✅ Recent Fixes (2025-10-19)
+## ✅ Recent Fixes (2025-10-20)
+
+### Calendar Write Access Added (2025-10-20)
+**Problem**: System could only READ from shared calendar, not CREATE/UPDATE/DELETE events
+**User Feedback**: "why not make changes?? i want to be able to add too"
+**Solution**:
+- Updated POST/PATCH/DELETE calendar endpoints to accept `calendarId` parameter
+- Supports 'personal', 'shared', or explicit calendar ID
+- Added service account to shared calendar with "Make changes to events" permission
+**Files Changed**: `api/server.js:330-450` (calendar endpoints)
+**Status**: ✅ DEPLOYED to Render
+
+### Memory System Fixed - Conversation Recall (2025-10-20)
+**Problem**: Brainolf couldn't remember past conversations, only emails/calendar
+**User Feedback**: "imagine a human assistant that forgets what you talked about after he/she came back from the bathroom"
+**Root Cause**: `/api/memory-search` only searched `smart_memories` table
+**Solution**:
+- Updated `memory-search-fixed.js` to search 4 sources:
+  1. smart_memories (emails, calendar, insights)
+  2. conversation_sessions (last 30 days)
+  3. daily_summaries (last 90 days)
+  4. weekly_summaries (last year)
+- Added relevance scoring across all sources
+**Files Changed**: `api/memory-search-fixed.js`
+**Status**: ✅ DEPLOYED to Render
+
+### Ghost Session Cleanup (2025-10-20)
+**Problem**: 1000 empty sessions (0 messages) being "closed" every 15 minutes, wasting API credits
+**User Feedback**: "those 1000 sessions keep haunting me"
+**Root Cause**: Cronjob tried to summarize sessions with 0 messages
+**Solution**:
+- Updated `close-inactive-sessions.js` to filter by `message_count > 0`
+- Ghost sessions (0 messages) now get DELETED instead of closed
+- Prevents wasting OpenRouter credits on empty summaries
+**Files Changed**: `api/cron/close-inactive-sessions.js`
+**Status**: ✅ DEPLOYED to Render
+
+---
+
+## ✅ Previous Fixes (2025-10-19)
 
 ### Calendar Connection Fixed (22:15)
 **Problem**: Calendar worked via direct API call but not from chat interface
@@ -448,12 +544,14 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 4. NEVER use Vercel CLI for env vars (links to wrong project)
 5. Always set env vars via Vercel dashboard
 
-**System Status** (2025-10-19 22:15):
+**System Status** (2025-10-20):
 - ✅ All systems operational
-- ✅ OpenRouter: $7.36 credits
+- ✅ OpenRouter: Credits available
 - ✅ Supabase: Working
 - ✅ Chat: Fully functional
-- ✅ Calendar: Fixed (timeMin/timeMax params)
+- ✅ Calendar: READ + WRITE access to both calendars (personal + shared)
+- ✅ Memory: Brainolf can now remember past conversations!
+- ✅ Ghost Sessions: Auto-deleted (no more spam)
 - ✅ Cron job: Deployed (15 min / 5 min timeout)
 - ✅ Naming: Fixed!
 
@@ -462,9 +560,10 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 - ✅ Cron job (15 min, 5 min timeout)
 - ✅ FLOW Dashboard (all 4 modes)
 - ✅ Database structure
-- ✅ Calendar connection (chat + API)
+- ✅ Calendar: Full read/write to personal + shared calendars
+- ✅ Memory: 4-source search (conversations, daily/weekly summaries, smart_memories)
 
 ---
 
-**Last Updated**: 2025-10-19 19:45
+**Last Updated**: 2025-10-20 (Calendar write access, conversation memory, ghost session cleanup)
 **Maintained By**: Jonas + Claude Code
