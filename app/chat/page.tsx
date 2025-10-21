@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, Send, Loader2, Sparkles } from 'lucide-react';
+import HeyGenAvatar from './components/HeyGenAvatar';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || 'JeeQuuFjong';
@@ -188,6 +189,11 @@ export default function ChatPage() {
         };
         setMessages(prev => [...prev, assistantMessage]);
 
+        // Make HeyGen avatar speak the response
+        if ((window as any).heygenSpeak) {
+          (window as any).heygenSpeak(data.response);
+        }
+
         // Save insight if important
         if (data.shouldSaveInsight) {
           await saveInsight(text, data.response);
@@ -312,6 +318,17 @@ export default function ChatPage() {
 
       {/* Chat container */}
       <main className="max-w-4xl mx-auto px-6 py-8 pb-32">
+        {/* HeyGen Avatar */}
+        <div className="mb-8">
+          <HeyGenAvatar
+            disabled={isLoading}
+            onUserSpeech={(text) => {
+              console.log('User said:', text);
+              sendMessage(text);
+            }}
+          />
+        </div>
+
         <div className="space-y-6">
           {messages.map((msg, idx) => (
             <div
