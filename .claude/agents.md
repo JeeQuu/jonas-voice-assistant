@@ -422,7 +422,36 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 - Health/scoring/combo mechanics
 - Multi-input support (mouse/touch/keyboard)
 
-## ✅ Recent Fixes (2025-10-20)
+## ✅ Recent Fixes (2025-10-21)
+
+### Receipt Extraction Automation (2025-10-21)
+**Problem**: Receipts stopped being extracted automatically after Oct 8, despite receipt emails arriving
+**User Feedback**: "theres been emails with receipts after 10th... hmmmm can we do a check from here to investigate that?"
+**Root Cause**: Cronjobs only called `/api/trigger-sync` (Gmail → smart_memories), NOT `/api/extract-receipts` (Gmail → receipts table)
+**Solution**:
+- Added Step 2.5 to `api/cron/daily-sync.js` for automatic receipt extraction
+- Runs every morning at 07:00 UTC after calendar sync
+- Extracts from last 14 days with 180s timeout (OCR can be slow)
+- Manual test: Successfully extracted 171 receipts (now up to Oct 21)
+**Files Changed**: `api/cron/daily-sync.js:88-115`
+**Commit**: `83b90ae feat: Add automatic receipt extraction to daily sync`
+**Status**: ✅ DEPLOYED to Render
+
+### Daily Summary Email Statistics (2025-10-21)
+**Problem**: Daily summary email always showed zeros for email counts (synced: 0, deleted: 0, receipts: 0)
+**User Feedback**: "shows that same 'nya mail synkade etc and its always the same numbers and doesnt summarize any emails'"
+**Root Cause**: `daily-sync.js` only passed `cleanupResult` to summary, which doesn't include Gmail sync counts
+**Solution**:
+- Built `completeSummary` object aggregating results from ALL sync steps
+- Extracts `synced` count from gmail_sync step
+- Extracts `receiptsExtracted` from receipt_extraction step
+- Passes complete data to `sendDailySummary(completeSummary)`
+**Files Changed**: `api/cron/daily-sync.js:150-160`
+**Commit**: `28de686 fix: Daily summary now shows actual email sync stats`
+**Test**: Triggered test email - received successfully with all sections working
+**Status**: ✅ DEPLOYED to Render
+
+## ✅ Previous Fixes (2025-10-20)
 
 ### Calendar Write Access Added (2025-10-20)
 **Problem**: System could only READ from shared calendar, not CREATE/UPDATE/DELETE events
@@ -606,7 +635,8 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 
 ---
 
-**Last Updated**: 2025-10-20 19:00 UTC
-**Major Changes**: Calendar write access, 4-source conversation memory, ghost session cleanup, Vercel frontend fix
+**Last Updated**: 2025-10-21 09:00 UTC
+**Major Changes**: Receipt extraction automation, daily summary email statistics fix
+**Previous Updates**: Calendar write access, 4-source conversation memory, ghost session cleanup, Vercel frontend fix
 **Status**: 🎉 **FULLY OPERATIONAL** - All systems working perfectly!
 **Maintained By**: Jonas + Claude Code
