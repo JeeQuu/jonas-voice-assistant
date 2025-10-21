@@ -115,19 +115,22 @@ export default function HeyGenAvatar({
       setDebug(`Starting avatar: ${AVATAR_ID}...`);
       const sessionData = await avatar.current.createStartAvatar({
         avatarName: AVATAR_ID,
-        quality: AvatarQuality.High,
-        voice: {
-          voiceId: 'en-US-JennyNeural', // You can customize this
-          rate: 1.0,
-          emotion: VoiceEmotion.FRIENDLY,
-        },
-        language: 'sv', // Swedish language
-        disableIdleTimeout: false,
+        quality: AvatarQuality.Low, // Start with Low quality for testing
+        knowledgeBase: '', // Disable HeyGen knowledge base - we'll use Brainolf instead
       });
 
       setIsSessionActive(true);
-      setDebug('Session active');
+      setDebug('Session active - ready for voice input');
       console.log('Session started:', sessionData);
+
+      // Enable microphone for voice input
+      try {
+        await avatar.current.startVoiceChat();
+        setDebug('Voice chat enabled - speak to talk with Brainolf!');
+      } catch (voiceError) {
+        console.warn('Could not enable voice chat:', voiceError);
+        setDebug('Session active (text mode only)');
+      }
     } catch (error: any) {
       console.error('Error starting session:', error);
       const errorMsg = error?.message || error?.toString() || 'Unknown error';
