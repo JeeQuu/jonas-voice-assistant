@@ -88,6 +88,10 @@ export default function HeyGenAvatar({
 
     avatarInstance.on(StreamingEvents.USER_TALKING_MESSAGE, (message) => {
       console.log('User speech detected:', message);
+
+      // Interrupt any HeyGen response immediately
+      avatarInstance.interrupt().catch(err => console.warn('Interrupt failed:', err));
+
       if (message && onUserSpeech) {
         onUserSpeech(message.detail);
       }
