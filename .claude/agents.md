@@ -424,6 +424,58 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 
 ## ✅ Recent Fixes (2025-10-21)
 
+### HeyGen Interactive Avatar Integration (2025-10-21)
+**Problem**: User wanted face-to-face voice conversations with Brainolf instead of just typing
+**User Feedback**: "it would be so nice if i had an avatar i could discuss everything with"
+**Solution**: Integrated HeyGen Streaming Avatar SDK with Katya avatar
+**Implementation**:
+- Created `/app/chat/components/HeyGenAvatar.tsx` component
+- Added `/app/api/heygen/token/route.ts` for secure token generation
+- Installed `@heygen/streaming-avatar` NPM package
+- Connected avatar to existing Brainolf backend
+**Features**:
+- Real-time video streaming (WebRTC)
+- Voice input: Speak → Katya transcribes → Brainolf responds
+- Voice output: Brainolf's text responses spoken by Katya
+- Full access to memory/calendar/emails during voice conversations
+- Session management (start/stop avatar)
+**Configuration**:
+- Avatar ID: `Katya_ProfessionalLook2_public`
+- Quality: Low (for testing, can be upgraded to High)
+- Knowledge Base: Disabled (uses Brainolf instead of HeyGen's default)
+**How It Works**:
+1. User clicks "Starta Avatar" → Fetches session token
+2. Initializes HeyGen SDK with token
+3. Starts avatar session with voice chat enabled
+4. User speaks → HeyGen STT transcribes
+5. Transcript sent to Brainolf → Full context response
+6. Katya speaks Brainolf's response
+**Files Changed**:
+- `app/chat/components/HeyGenAvatar.tsx` - Avatar component
+- `app/chat/page.tsx` - Integrated avatar into chat UI
+- `app/api/heygen/token/route.ts` - Token endpoint
+- `.env.local` - Added HEYGEN_API_KEY and HEYGEN_AVATAR_ID
+**Commits**:
+- `5c276d1` - Initial HeyGen integration
+- `365412d` - Authentication fix (session token)
+- `7ce1d50` - Error logging improvements
+- `03bd5dc` - Connected to Brainolf with voice input
+**Status**: ✅ Working (voice loop operational)
+**Note**: Katya may need knowledge base override to prevent HeyGen default responses
+
+### Email Sync Cronjob Fixes (2025-10-21)
+**Problem**: `email-sync-frequent` and `email_sync_evening` cronjobs failing with timeouts
+**Root Cause**: Cronjobs called `/api/trigger-sync` which runs FULL daily-sync (Gmail + Calendar + Receipt extraction + Cleanup + Summary). Receipt extraction has 180s timeout, but cronjobs only waited 60s.
+**Solution**: Changed to call `/api/sync-gmail-to-memory` instead
+- Only syncs Gmail → smart_memories (no receipts, no cleanup)
+- Faster and more appropriate for frequent syncs
+- Increased timeout to 120s
+- Added `daysBack: 7` parameter
+**Files Changed**: `cron/email-sync-frequent.js`
+**Commit**: `1ad13f0 fix: Email sync cronjobs now use sync-gmail-to-memory`
+**Test**: Manually tested - successfully synced 183 emails
+**Status**: ✅ FIXED - Cronjobs now complete successfully
+
 ### Receipt Extraction Automation (2025-10-21)
 **Problem**: Receipts stopped being extracted automatically after Oct 8, despite receipt emails arriving
 **User Feedback**: "theres been emails with receipts after 10th... hmmmm can we do a check from here to investigate that?"
@@ -635,8 +687,14 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 
 ---
 
-**Last Updated**: 2025-10-21 09:00 UTC
-**Major Changes**: Receipt extraction automation, daily summary email statistics fix
+**Last Updated**: 2025-10-21 23:00 UTC
+**Major Changes**:
+- HeyGen Interactive Avatar integration (Katya)
+- Voice conversations with Brainolf
+- Email sync cronjob fixes
+- Receipt extraction automation
+- Daily summary email statistics fix
+
 **Previous Updates**: Calendar write access, 4-source conversation memory, ghost session cleanup, Vercel frontend fix
 **Status**: 🎉 **FULLY OPERATIONAL** - All systems working perfectly!
 **Maintained By**: Jonas + Claude Code
