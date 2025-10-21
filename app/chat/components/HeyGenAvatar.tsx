@@ -112,6 +112,7 @@ export default function HeyGenAvatar({
       setupAvatarListeners(avatar.current);
 
       // Step 3: Start avatar session
+      setDebug(`Starting avatar: ${AVATAR_ID}...`);
       const sessionData = await avatar.current.createStartAvatar({
         avatarName: AVATAR_ID,
         quality: AvatarQuality.High,
@@ -127,9 +128,11 @@ export default function HeyGenAvatar({
       setIsSessionActive(true);
       setDebug('Session active');
       console.log('Session started:', sessionData);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error starting session:', error);
-      setDebug(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMsg = error?.message || error?.toString() || 'Unknown error';
+      const errorCode = error?.code || error?.status || '';
+      setDebug(`Error ${errorCode}: ${errorMsg}. Check: 1) Avatar ID exists in your account, 2) Your plan supports Interactive Avatars, 3) Avatar is enabled for streaming`);
     } finally {
       setIsLoadingSession(false);
     }
