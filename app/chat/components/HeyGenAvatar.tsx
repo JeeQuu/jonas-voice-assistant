@@ -27,31 +27,54 @@ export default function HeyGenAvatar({
 
   const mediaStream = useRef<HTMLVideoElement>(null);
   const avatar = useRef<StreamingAvatar | null>(null);
+  const [sessionToken, setSessionToken] = useState<string>('');
 
-  const HEYGEN_API_KEY = process.env.NEXT_PUBLIC_HEYGEN_API_KEY || '';
   const AVATAR_ID = process.env.NEXT_PUBLIC_HEYGEN_AVATAR_ID || 'Katya_ProfessionalLook2_public';
+
+  // Fetch session token from API
+  async function fetchSessionToken() {
+    try {
+      const response = await fetch('/api/heygen/token', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.token) {
+        setSessionToken(data.token);
+        return data.token;
+      } else {
+        throw new Error(data.error || 'Failed to get token');
+      }
+    } catch (error) {
+      console.error('Error fetching session token:', error);
+      setDebug(`Token error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return null;
+    }
+  }
 
   // Initialize avatar when component mounts
   useEffect(() => {
-    avatar.current = new StreamingAvatar({
-      token: HEYGEN_API_KEY,
-    });
+    // Avatar will be initialized when session starts
+    return () => {
+      endSession();
+    };
+  }, []);
 
-    // Set up event listeners
-    avatar.current.on(StreamingEvents.AVATAR_START_TALKING, (e) => {
+  // Set up event listeners when avatar is created
+  function setupAvatarListeners(avatarInstance: StreamingAvatar) {
+    avatarInstance.on(StreamingEvents.AVATAR_START_TALKING, (e) => {
       console.log('Avatar started talking', e);
     });
 
-    avatar.current.on(StreamingEvents.AVATAR_STOP_TALKING, (e) => {
+    avatarInstance.on(StreamingEvents.AVATAR_STOP_TALKING, (e) => {
       console.log('Avatar stopped talking', e);
     });
 
-    avatar.current.on(StreamingEvents.STREAM_DISCONNECTED, () => {
+    avatarInstance.on(StreamingEvents.STREAM_DISCONNECTED, () => {
       console.log('Stream disconnected');
       endSession();
     });
 
-    avatar.current.on(StreamingEvents.STREAM_READY, (event) => {
+    avatarInstance.on(StreamingEvents.STREAM_READY, (event) => {
       console.log('Stream ready:', event.detail);
       if (event.detail && mediaStream.current) {
         mediaStream.current.srcObject = event.detail;
@@ -63,27 +86,32 @@ export default function HeyGenAvatar({
       }
     });
 
-    avatar.current.on(StreamingEvents.USER_TALKING_MESSAGE, (message) => {
+    avatarInstance.on(StreamingEvents.USER_TALKING_MESSAGE, (message) => {
       console.log('User speech detected:', message);
       if (message && onUserSpeech) {
         onUserSpeech(message.detail);
       }
     });
-
-    return () => {
-      endSession();
-    };
-  }, []);
+  }
 
   async function startSession() {
     setIsLoadingSession(true);
-    setDebug('Starting session...');
+    setDebug('Fetching session token...');
 
     try {
-      if (!avatar.current) {
-        throw new Error('Avatar not initialized');
+      // Step 1: Get session token
+      const token = await fetchSessionToken();
+      if (!token) {
+        throw new Error('Failed to fetch session token');
       }
 
+      setDebug('Initializing avatar...');
+
+      // Step 2: Initialize avatar with token
+      avatar.current = new StreamingAvatar({ token });
+      setupAvatarListeners(avatar.current);
+
+      // Step 3: Start avatar session
       const sessionData = await avatar.current.createStartAvatar({
         avatarName: AVATAR_ID,
         quality: AvatarQuality.High,
