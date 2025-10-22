@@ -155,7 +155,7 @@ export default function HeyGenAvatar({
     try {
       await avatar.current.speak({
         text: text,
-        taskType: TaskType.TALK,
+        taskType: TaskType.REPEAT, // Use REPEAT to disable HeyGen's AI - just speak the text
         taskMode: TaskMode.SYNC,
       });
 
