@@ -11,13 +11,11 @@ import StreamingAvatar, {
 
 interface HeyGenAvatarProps {
   onAvatarResponse?: (text: string) => void;
-  onUserSpeech?: (text: string) => void;
   disabled?: boolean;
 }
 
 export default function HeyGenAvatar({
   onAvatarResponse,
-  onUserSpeech,
   disabled = false
 }: HeyGenAvatarProps) {
   const [isLoadingSession, setIsLoadingSession] = useState(false);
@@ -86,16 +84,8 @@ export default function HeyGenAvatar({
       }
     });
 
-    avatarInstance.on(StreamingEvents.USER_TALKING_MESSAGE, (message) => {
-      console.log('User speech detected:', message);
-
-      // Interrupt any HeyGen response immediately
-      avatarInstance.interrupt().catch(err => console.warn('Interrupt failed:', err));
-
-      if (message && onUserSpeech) {
-        onUserSpeech(message.detail);
-      }
-    });
+    // Note: We don't use USER_TALKING_MESSAGE because we disabled HeyGen's voice chat
+    // Voice input is handled by the microphone button in the main chat UI
   }
 
   async function startSession() {
@@ -124,17 +114,12 @@ export default function HeyGenAvatar({
       });
 
       setIsSessionActive(true);
-      setDebug('Session active - ready for voice input');
+      setDebug('Session active - ready for text input');
       console.log('Session started:', sessionData);
 
-      // Enable microphone for voice input
-      try {
-        await avatar.current.startVoiceChat();
-        setDebug('Voice chat enabled - speak to talk with Brainolf!');
-      } catch (voiceError) {
-        console.warn('Could not enable voice chat:', voiceError);
-        setDebug('Session active (text mode only)');
-      }
+      // NOTE: We're NOT enabling HeyGen's voice chat because it has its own AI
+      // Instead, use the microphone button in the chat UI for voice input
+      // That way we can control the entire flow: Your voice -> Our STT -> Brainolf -> Katya speaks
     } catch (error: any) {
       console.error('Error starting session:', error);
       const errorMsg = error?.message || error?.toString() || 'Unknown error';
@@ -186,7 +171,8 @@ export default function HeyGenAvatar({
   // Expose speak method via ref (can be called from parent)
   useEffect(() => {
     (window as any).heygenSpeak = speak;
-  }, [isSessionActive]);
+    console.log('HeyGen speak method exposed, session active:', isSessionActive);
+  }, [isSessionActive, avatar.current]);
 
   return (
     <div className="heygen-avatar-container">

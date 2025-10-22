@@ -322,10 +322,6 @@ export default function ChatPage() {
         <div className="mb-8">
           <HeyGenAvatar
             disabled={isLoading}
-            onUserSpeech={(text) => {
-              console.log('User said:', text);
-              sendMessage(text);
-            }}
           />
         </div>
 
