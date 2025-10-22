@@ -260,6 +260,25 @@ export async function executeTool(toolName: string, params: any): Promise<any> {
       return await callBackend('/api/trigger-sync', 'POST');
     }
 
+    // ===== CONTACTS =====
+    if (toolName === 'get_contacts') {
+      const queryParams: any = {};
+      if (params.role) queryParams.role = params.role;
+      if (params.active !== undefined) queryParams.active = params.active.toString();
+
+      return await callBackend('/api/contacts', 'GET', queryParams);
+    }
+
+    if (toolName === 'create_contact') {
+      return await callBackend('/api/contacts', 'POST', {
+        name: params.name,
+        email: params.email,
+        role: params.role || 'other',
+        phone: params.phone || null,
+        notes: params.notes || null
+      });
+    }
+
     return {
       success: false,
       error: `Unknown tool: ${toolName}`

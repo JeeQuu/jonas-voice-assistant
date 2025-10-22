@@ -451,5 +451,39 @@ export const TOOLS = [
         properties: {}
       }
     }
+  },
+
+  // ===== CONTACTS (2) =====
+  {
+    type: 'function',
+    function: {
+      name: 'get_contacts',
+      description: 'Hämta Jonas kontakter. Använd för att slå upp mailadresser, telefonnummer, roller. Exempel: hitta manager Joel, ekonomiansvarig Karl, etc.',
+      parameters: {
+        type: 'object',
+        properties: {
+          role: { type: 'string', description: 'Filtrera på roll: "manager", "ekonomi", "client", etc. (optional)' },
+          active: { type: 'boolean', description: 'Visa endast aktiva kontakter (default: true)' }
+        }
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'create_contact',
+      description: 'Skapa ny kontakt när Jonas nämner en ny person med mailadress/telefon. Spara namn, email, roll, anteckningar.',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Personens fullständiga namn' },
+          email: { type: 'string', description: 'Email-adress' },
+          role: { type: 'string', description: 'Roll: "manager", "ekonomi", "client", "samarbetspartner", "other"' },
+          phone: { type: 'string', description: 'Telefonnummer (optional)' },
+          notes: { type: 'string', description: 'Anteckningar om personen (optional)' }
+        },
+        required: ['name', 'email']
+      }
+    }
   }
 ];
