@@ -698,3 +698,184 @@ Detection logic in: `app/flow/utils/categoryStyles.ts`
 **Previous Updates**: Calendar write access, 4-source conversation memory, ghost session cleanup, Vercel frontend fix
 **Status**: 🎉 **FULLY OPERATIONAL** - All systems working perfectly!
 **Maintained By**: Jonas + Claude Code
+
+---
+
+## 📅 Latest Updates - 2025-10-22
+
+### HeyGen Avatar Integration (Katya)
+- ✅ **Video Avatar**: Katya speaks all Brainolf responses with TTS
+- ✅ **TaskType.REPEAT**: No HeyGen AI - only Brainolf's responses
+- ✅ **Voice Chat**: DISABLED on HeyGen side (we use our own STT)
+- ✅ **Integration**: `/chat` page with video + text-to-speech
+
+**Files changed**:
+- `app/chat/components/HeyGenAvatar.tsx` - Main avatar component
+- `app/api/heygen/token/route.ts` - Session token endpoint
+- `app/chat/page.tsx` - Integrated avatar into chat UI
+
+**How it works**:
+1. User types or speaks (via mic button)
+2. Brainolf processes with all 32 tools
+3. Katya speaks Brainolf's response (video + TTS)
+4. No HeyGen AI interference - pure Brainolf
+
+### Voice Input with Whisper
+- ✅ **Microphone button**: Click to record, release to transcribe
+- ✅ **OpenAI Whisper**: Swedish language STT
+- ✅ **Integration**: Works with or without HeyGen avatar
+
+**Files changed**:
+- `app/api/voice-simple/route.ts` - Whisper transcription endpoint
+- `app/chat/page.tsx` - Mic button implementation
+
+**How to test**:
+1. Go to /chat
+2. Click microphone button 🎤
+3. Speak in Swedish
+4. Release button → Whisper transcribes → Brainolf responds
+
+### Contacts System (32 Tools → 34 Tools)
+- ✅ **get_contacts**: Look up email addresses, roles, phone numbers
+- ✅ **create_contact**: Save new contacts with role categorization
+- ✅ **Proactive saving**: Brainolf suggests saving when you mention new people
+- ✅ **Auto-lookup**: Searches Gmail for email addresses if needed
+
+**Current contacts**:
+- Joel Borg (joel@borglundell.se) - manager
+- Karl Nissfeldt (karl@eker.se) - ekonomi
+
+**Files changed**:
+- `lib/tools-config.ts` - Added 2 new contact tools
+- `lib/tool-executor.ts` - Contact tool execution
+- `app/api/chat/route.ts` - Proactive contact saving rules
+
+**How it works**:
+```
+User: "Jag fick mail från Emma Andersson"
+→ Brainolf: search_gmail för Emma
+→ Hittar: emma@startup.se
+→ "Vill du spara Emma som kontakt? Vilken roll har hon?"
+User: "Ja, klient"
+→ Brainolf: create_contact → Sparad!
+```
+
+### Mail Safety Rules (Critical!)
+- ⚠️ **NEVER send without approval**: Must show draft + ask first
+- ⚠️ **NEVER guess emails**: Use get_contacts or ask user
+- ⚠️ **Must confirm**: Only send when user says "skicka" / "send"
+
+**Updated system prompt** with:
+1. Explicit "help me write" vs "send this" distinction
+2. Always use get_contacts to look up addresses
+3. Show (a) To, (b) Subject, (c) Full text, (d) Ask permission
+4. Example workflow in prompt
+
+---
+
+## 📖 User Manual
+
+**NEW**: Complete user manual created at `USER_MANUAL.md`
+
+**What it contains**:
+- ✅ Snabbstart & URL
+- ✅ Snabbkommandon för alla features
+- ✅ 8-step testplan (verifiera att allt fungerar)
+- ✅ Felsökningsguide
+- ✅ Alla 34 tools förklarade
+- ✅ HeyGen Avatar guide
+- ✅ Säkerhetsregler
+- ✅ Dataflöden (morning routine, chat, session end)
+- ✅ Best practices
+- ✅ Changelog med alla fixes
+
+**How to use**:
+- Jonas: Read USER_MANUAL.md for feature overview & troubleshooting
+- New AI: Read agents.md (this file) + SUPABASE_DATABASE_SCHEMA.md first
+
+---
+
+## 🔧 Recent Fixes Summary
+
+### 2025-10-22 (This Session)
+1. **HeyGen Avatar** - Katya now speaks Brainolf's responses
+2. **Voice Input** - Whisper STT via microphone button
+3. **Contacts** - get_contacts + create_contact tools
+4. **Proactive Contacts** - Auto-suggest saving new people
+5. **Mail Safety** - Critical rules to prevent accidental sends
+6. **Karl's Email** - Updated to karl@eker.se (was wrong placeholder)
+7. **User Manual** - Complete guide for Jonas
+
+### 2025-10-21 (Previous Session)
+1. **Receipt Extraction** - Auto-extract in daily sync (14 days lookback)
+2. **Daily Summary Email** - Fixed to show real stats (was showing zeros)
+3. **Email Sync Cronjobs** - Fixed timeouts + endpoint issues
+
+### 2025-10-20 (Previous Session)
+1. **Calendar Write Access** - Both calendars (personal + shared)
+2. **4-Source Memory** - Conversation memory across sessions
+3. **Ghost Session Cleanup** - 1000 sessions deleted
+4. **Vercel Frontend** - Deployment fixed
+
+---
+
+## 🎯 Current System Capabilities
+
+**Total Tools**: 34 (was 30, added contacts x2)
+
+**What Brainolf Can Do** (test with USER_MANUAL.md):
+- ✅ Remember conversations (persistent memory)
+- ✅ Manage calendar (read + write, both calendars)
+- ✅ Search & send email (with safety checks)
+- ✅ Save & lookup contacts (auto-suggest when mentioning people)
+- ✅ Handle todos (create, update, delete)
+- ✅ Extract & analyze receipts (OCR + AI)
+- ✅ Track subscriptions (monthly costs)
+- ✅ Work with Dropbox files
+- ✅ Speak responses via HeyGen Avatar (Katya)
+- ✅ Listen via voice input (Whisper STT)
+- ✅ Provide daily context briefings
+- ✅ Track health (mood, energy, stress)
+
+**What's New Today**:
+- 🆕 Visual avatar (Katya) with TTS
+- 🆕 Voice input (microphone button)
+- 🆕 Contact management (save & lookup)
+- 🆕 Proactive contact saving suggestions
+
+---
+
+## 🚀 Testing Checklist
+
+**After deployment, verify these work**:
+
+1. **Calendar**:
+   - [ ] "Vad har jag för möten idag?" → Shows events
+   - [ ] "Boka testmöte imorgon kl 10" → Creates event
+
+2. **Mail**:
+   - [ ] "Sök mail från Joel" → Shows emails
+   - [ ] "Hjälp mig formulera mail till Joel" → Shows draft, asks permission
+
+3. **Contacts**:
+   - [ ] "Vem är min manager?" → Joel Borg (joel@borglundell.se)
+   - [ ] "Spara testperson, test@example.com som other" → Saved
+
+4. **Memory**:
+   - [ ] "Kom ihåg att jag gillar pizza" → wait 10s → "Vad gillar jag?" → pizza
+
+5. **HeyGen Avatar**:
+   - [ ] Start Katya → Type question → Katya speaks answer
+   - [ ] No HeyGen comments, only Brainolf responses
+
+6. **Voice Input**:
+   - [ ] Click mic → Speak → Release → Transcribed → Brainolf responds
+
+7. **Proactive Contacts**:
+   - [ ] "Jag fick mail från Emma" → Suggests saving Emma
+
+8. **Mail Safety**:
+   - [ ] "Hjälp mig formulera mail" → Shows draft, does NOT send automatically
+
+---
+
