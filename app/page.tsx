@@ -185,6 +185,20 @@ export default function HomePage() {
               <div className="text-[#A89E92]">→</div>
             </div>
           </Link>
+
+          <Link
+            href="/vision"
+            className="block p-6 bg-gradient-to-r from-[#C87D5E] to-[#6B8E7F] border-2 border-[#C87D5E] text-white font-light text-lg hover:border-white transition-all shadow-lg"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl mb-2">🌌</div>
+                <div className="font-normal">Vision Quest</div>
+                <div className="text-sm text-white/80 mt-1">Psychedelisk rymdresa</div>
+              </div>
+              <div className="text-white/80">→</div>
+            </div>
+          </Link>
         </div>
 
         {/* Footer */}
