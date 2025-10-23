@@ -143,17 +143,39 @@ export function DailyBriefing({ tasks }: DailyBriefingProps) {
 
       const { audioBase64 } = await response.json();
 
-      // Play audio
-      const audio = new Audio(`data:audio/mpeg;base64,${audioBase64}`);
-      setIsPlaying(true);
+      // Play audio - mobile friendly approach
+      const audio = new Audio();
+      audio.preload = 'auto';
+      audio.src = `data:audio/mpeg;base64,${audioBase64}`;
 
       audio.onended = () => setIsPlaying(false);
-      audio.onerror = () => setIsPlaying(false);
+      audio.onerror = (e) => {
+        console.error('Audio playback error:', e);
+        setIsPlaying(false);
+        throw new Error('Audio playback failed');
+      };
 
-      await audio.play();
-    } catch (error) {
+      // Load audio first (important for mobile)
+      await audio.load();
+      setIsPlaying(true);
+
+      // Try to play with proper error handling for mobile
+      try {
+        await audio.play();
+      } catch (playError: any) {
+        setIsPlaying(false);
+        console.error('Play error:', playError);
+
+        // Mobile-specific error message
+        if (playError.name === 'NotAllowedError' || playError.name === 'NotSupportedError') {
+          alert('Mobilen blockerade uppspelning. Tryck på knappen igen för att spela.');
+        } else {
+          throw playError;
+        }
+      }
+    } catch (error: any) {
       console.error('Failed to play briefing:', error);
-      alert('Kunde inte spela upp briefing. Kontrollera att ElevenLabs API är konfigurerat.');
+      alert(`Kunde inte spela upp briefing: ${error.message || 'Okänt fel'}`);
     } finally {
       setIsLoading(false);
     }

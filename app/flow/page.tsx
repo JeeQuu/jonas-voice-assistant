@@ -73,28 +73,60 @@ export default function FlowDashboard() {
       if (response.data.success) {
         setMeditationScript(response.data.script);
 
-        // Convert base64 audio to blob and play
+        // Convert base64 audio to blob and play - mobile friendly
         const audioBlob = new Blob(
           [Uint8Array.from(atob(response.data.audio), c => c.charCodeAt(0))],
           { type: 'audio/mpeg' }
         );
         const audioUrl = URL.createObjectURL(audioBlob);
 
-        meditationAudioRef.current = new Audio(audioUrl);
+        meditationAudioRef.current = new Audio();
+        meditationAudioRef.current.preload = 'auto';
+        meditationAudioRef.current.src = audioUrl;
         meditationAudioRef.current.volume = 1.0;
 
         meditationAudioRef.current.onended = () => {
           setIsMeditating(false);
+          URL.revokeObjectURL(audioUrl); // Clean up blob URL
           if (audioRef.current) {
             audioRef.current.volume = 0.25; // Restore background music
           }
         };
 
-        await meditationAudioRef.current.play();
+        meditationAudioRef.current.onerror = () => {
+          console.error('Meditation audio playback error');
+          setIsMeditating(false);
+          URL.revokeObjectURL(audioUrl);
+          if (audioRef.current) {
+            audioRef.current.volume = 0.25;
+          }
+        };
+
+        // Load audio first (important for mobile)
+        await meditationAudioRef.current.load();
+
+        // Try to play with proper error handling for mobile
+        try {
+          await meditationAudioRef.current.play();
+        } catch (playError: any) {
+          console.error('Meditation play error:', playError);
+          setIsMeditating(false);
+          URL.revokeObjectURL(audioUrl);
+          if (audioRef.current) {
+            audioRef.current.volume = 0.25;
+          }
+
+          // Mobile-specific error message
+          if (playError.name === 'NotAllowedError' || playError.name === 'NotSupportedError') {
+            alert('Mobilen blockerade uppspelning. Tryck på knappen igen för att starta meditationen.');
+          } else {
+            throw playError;
+          }
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Meditation error:', error);
-      alert('Kunde inte ladda meditation. Försök igen.');
+      alert(`Kunde inte ladda meditation: ${error.message || 'Försök igen.'}`);
       setIsMeditating(false);
       if (audioRef.current) {
         audioRef.current.volume = 0.25;
