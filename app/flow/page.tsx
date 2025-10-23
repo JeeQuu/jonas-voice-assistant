@@ -5,20 +5,12 @@ import FlowMode from './components/FlowMode';
 import MagneticField from './components/MagneticField';
 import FocusMode from './components/FocusMode';
 import { useTasks } from './hooks/useTasks';
-import axios from 'axios';
-
-// Always use production API (deployed on Render)
-const API_URL = 'https://quant-show-api.onrender.com';
-const API_KEY = 'JeeQuuFjong';
 
 export default function FlowDashboard() {
   const [mode, setMode] = useState<'magnetic' | 'flow' | 'focus'>('magnetic');
   const { tasks, markComplete } = useTasks(0); // Load today's tasks
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const meditationAudioRef = useRef<HTMLAudioElement | null>(null);
   const [isMuted, setIsMuted] = useState(false);
-  const [isMeditating, setIsMeditating] = useState(false);
-  const [meditationScript, setMeditationScript] = useState<string>('');
 
   useEffect(() => {
     // Create and play zen meditation music
@@ -57,96 +49,18 @@ export default function FlowDashboard() {
     }
   };
 
-  const playMorningMeditation = async () => {
-    setIsMeditating(true);
-
-    try {
-      // Dim background music
-      if (audioRef.current) {
-        audioRef.current.volume = 0.1;
-      }
-
-      const response = await axios.get(`${API_URL}/api/morning-meditation`, {
-        headers: { 'x-api-key': API_KEY }
-      });
-
-      if (response.data.success) {
-        setMeditationScript(response.data.script);
-
-        // Convert base64 audio to blob and play - mobile friendly
-        const audioBlob = new Blob(
-          [Uint8Array.from(atob(response.data.audio), c => c.charCodeAt(0))],
-          { type: 'audio/mpeg' }
-        );
-        const audioUrl = URL.createObjectURL(audioBlob);
-
-        meditationAudioRef.current = new Audio();
-        meditationAudioRef.current.preload = 'auto';
-        meditationAudioRef.current.src = audioUrl;
-        meditationAudioRef.current.volume = 1.0;
-
-        meditationAudioRef.current.onended = () => {
-          setIsMeditating(false);
-          URL.revokeObjectURL(audioUrl); // Clean up blob URL
-          if (audioRef.current) {
-            audioRef.current.volume = 0.25; // Restore background music
-          }
-        };
-
-        meditationAudioRef.current.onerror = () => {
-          console.error('Meditation audio playback error');
-          setIsMeditating(false);
-          URL.revokeObjectURL(audioUrl);
-          if (audioRef.current) {
-            audioRef.current.volume = 0.25;
-          }
-        };
-
-        // Load audio first (important for mobile)
-        await meditationAudioRef.current.load();
-
-        // Try to play with proper error handling for mobile
-        try {
-          await meditationAudioRef.current.play();
-        } catch (playError: any) {
-          console.error('Meditation play error:', playError);
-          setIsMeditating(false);
-          URL.revokeObjectURL(audioUrl);
-          if (audioRef.current) {
-            audioRef.current.volume = 0.25;
-          }
-
-          // Mobile-specific error message
-          if (playError.name === 'NotAllowedError' || playError.name === 'NotSupportedError') {
-            alert('Mobilen blockerade uppspelning. Tryck på knappen igen för att starta meditationen.');
-          } else {
-            throw playError;
-          }
-        }
-      }
-    } catch (error: any) {
-      console.error('Meditation error:', error);
-      alert(`Kunde inte ladda meditation: ${error.message || 'Försök igen.'}`);
-      setIsMeditating(false);
-      if (audioRef.current) {
-        audioRef.current.volume = 0.25;
-      }
-    }
-  };
-
-  const stopMeditation = () => {
-    if (meditationAudioRef.current) {
-      meditationAudioRef.current.pause();
-      meditationAudioRef.current = null;
-    }
-    setIsMeditating(false);
-    if (audioRef.current) {
-      audioRef.current.volume = 0.25;
-    }
-  };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5]">
+    <div className="min-h-screen bg-[#F5F1E8]">
+      {/* Home button - top left */}
+      <a
+        href="/"
+        className="fixed top-4 left-4 z-50 text-3xl text-[#2C2420] hover:text-[#C87D5E] transition-colors bg-white border-2 border-[#D4CDC1] p-3 hover:border-[#C87D5E]"
+        title="Tillbaka till start"
+      >
+        🏠
+      </a>
+
       {mode === 'magnetic' ? (
         <MagneticField tasks={tasks} onToggleMode={toggleMode} onCompleteTask={markComplete} />
       ) : mode === 'flow' ? (
@@ -155,52 +69,22 @@ export default function FlowDashboard() {
         <FocusMode onToggleMode={toggleMode} />
       )}
 
-      {/* Mode indicator - geometric block - DOUBLE TAP THIS TO SWITCH */}
+      {/* Mode indicator */}
       <div
         onDoubleClick={toggleMode}
-        className="fixed bottom-4 right-4 bg-[#2C3E50] text-white px-4 py-2 border-4 border-white font-black text-xs shadow-lg z-50 cursor-pointer hover:bg-[#34495E] transition-colors"
+        className="fixed bottom-4 right-4 bg-[#2C2420] text-white px-4 py-2 border-2 border-[#D4CDC1] font-light text-xs z-50 cursor-pointer hover:bg-[#C87D5E] transition-colors"
       >
         {mode.toUpperCase()} • DOUBLE-TAP
       </div>
 
-      {/* Music toggle - geometric block */}
+      {/* Music toggle */}
       <button
         onClick={toggleMute}
-        className="fixed bottom-4 left-4 bg-[#87CEEB] text-[#2C3E50] px-4 py-2 border-4 border-white font-black text-xs shadow-lg hover:scale-105 transition-transform"
+        className="fixed bottom-4 left-4 bg-white border-2 border-[#6B8E7F] text-[#6B8E7F] px-4 py-2 font-light text-xs hover:bg-[#6B8E7F] hover:text-white transition-all"
       >
-        {isMuted ? 'MUTED' : 'ZEN MUSIC'}
+        {isMuted ? 'TYST' : 'ZEN MUSIK'}
       </button>
 
-      {/* Morning Meditation button */}
-      <button
-        onClick={isMeditating ? stopMeditation : playMorningMeditation}
-        disabled={isMeditating && !meditationAudioRef.current}
-        className={`fixed bottom-16 left-4 px-4 py-2 border-4 border-white font-black text-xs shadow-lg hover:scale-105 transition-all ${
-          isMeditating
-            ? 'bg-[#FF6B4A] text-white animate-pulse'
-            : 'bg-[#2C3E50] text-white'
-        }`}
-      >
-        {isMeditating ? '🧘 MEDITATING...' : '🧘 MORNING ZEN'}
-      </button>
-
-      {/* Meditation script overlay */}
-      {isMeditating && meditationScript && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-8">
-          <div className="bg-white/10 border-4 border-white p-8 max-w-2xl max-h-[80vh] overflow-y-auto">
-            <button
-              onClick={stopMeditation}
-              className="float-right bg-white/20 px-3 py-1 text-white font-bold text-sm hover:bg-white/30"
-            >
-              ✕ CLOSE
-            </button>
-            <h2 className="text-white text-2xl font-black mb-4">ZEN MEDITATION</h2>
-            <p className="text-white/90 text-lg leading-relaxed whitespace-pre-wrap font-medium">
-              {meditationScript}
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

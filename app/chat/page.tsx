@@ -286,23 +286,27 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50 to-green-50">
+    <div className="min-h-screen bg-[#F5F1E8]">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-stone-200 sticky top-0 z-10">
+      <header className="bg-white border-b-2 border-[#D4CDC1] sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-green-600 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
+            <a
+              href="/"
+              className="text-[#2C2420] hover:text-[#C87D5E] transition-colors text-2xl"
+              title="Tillbaka till start"
+            >
+              🏠
+            </a>
             <div>
-              <h1 className="text-xl font-semibold text-stone-800">Jonas AI</h1>
-              <p className="text-xs text-stone-500">Powered by Brainolf 2.0</p>
+              <h1 className="text-xl font-light text-[#2C2420]">Chat</h1>
+              <p className="text-xs text-[#6B5D52] font-light">Din AI-assistent</p>
             </div>
           </div>
 
           {/* Health indicator */}
           {healthToday && (
-            <div className="hidden md:flex items-center gap-2 text-sm text-stone-600">
+            <div className="hidden md:flex items-center gap-2 text-sm text-[#6B5D52] font-light">
               <div className="flex items-center gap-1">
                 <span>😊</span>
                 <span>{healthToday.mood_score}/10</span>
