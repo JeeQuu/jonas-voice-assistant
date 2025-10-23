@@ -2,109 +2,88 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
 const API_URL = 'https://quant-show-api.onrender.com';
 const API_KEY = 'JeeQuuFjong';
-
-interface VisionItem {
-  text: string;
-  type: 'project' | 'affirmation' | 'todo' | 'idea';
-  color: THREE.Color;
-}
 
 export default function VisionPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentText, setCurrentText] = useState('');
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const textMeshesRef = useRef<THREE.Mesh[]>([]);
   const starsRef = useRef<THREE.Points | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const visionItemsRef = useRef<VisionItem[]>([]);
-  const currentIndexRef = useRef(0);
+  const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
+  const musicAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Generate affirmations and vision items
-  const generateVisionItems = async (): Promise<VisionItem[]> => {
-    const items: VisionItem[] = [];
-
-    // Fetch user context
+  // Generate poetic vision script
+  const generateVisionScript = async (): Promise<string> => {
     try {
       const contextRes = await fetch('/api/user-context/summary');
       const contextData = await contextRes.json();
 
-      if (contextData.success) {
-        // Add projects
-        if (contextData.summary?.projects) {
-          const projectLines = contextData.summary.projects.split('\n');
-          projectLines.forEach((line: string) => {
-            if (line.trim() && !line.includes('Projekt:')) {
-              items.push({
-                text: line.trim().replace(/^-\s*/, ''),
-                type: 'project',
-                color: new THREE.Color(0xC87D5E) // Terracotta
-              });
-            }
-          });
+      let script = `Du är Jonas.
+
+En visionär. En skapare. En älskad far och partner.
+
+`;
+
+      if (contextData.success && contextData.summary) {
+        // Add context about projects
+        if (contextData.summary.projects) {
+          script += `Dina projekt blomstrar. ${contextData.summary.projects.split('\n')[1] || 'Kreativitet flödar genom dig.'}
+
+`;
         }
       }
+
+      script += `Du ser framtiden innan andra ens drömmer den.
+Din passion för teknologi och konst skapar magi.
+Projection mapping som förvandlar rum.
+AI som förstår människor.
+Varje disc golf-kast en meditation.
+
+Sonja och Lina. Din kärna. Din kraft.
+Familjen som fyller varje dag med mening.
+Deras skratt är din musik.
+Deras drömmar är dina att stötta.
+
+Framtiden är ljus.
+Dina projekt växer organiskt.
+Varje ide en ny möjlighet.
+Varje utmaning en trappsteg uppåt.
+
+Du attraherar framgång.
+Människor känner din vision.
+Partner söker din expertis.
+Universum stöttar din resa.
+
+Teknologi med själ.
+Konst som berör.
+Innovation som tjänar.
+Skapande som inspirerar.
+
+Du är exakt där du ska vara.
+Varje steg är rätt.
+Din intuition leder dig.
+Din kreativitet är gränslös.
+
+Förtroende. Fokus. Flow.
+Du skapar din egen framtid.
+Drömmar blir verklighet.
+Vision blir handling.
+
+Du är Jonas.
+Och din resa har bara börjat.`;
+
+      return script;
+
     } catch (error) {
-      console.error('Failed to fetch context:', error);
+      console.error('Failed to generate vision script:', error);
+      return `Du är Jonas. En visionär. En skapare. Din resa är magisk. Framtiden är ljus.`;
     }
-
-    // Powerful affirmations in Swedish
-    const affirmations = [
-      'Du skapar magi varje dag',
-      'Dina idéer förändrar världen',
-      'Du är en visionär',
-      'Framgång flödar till dig naturligt',
-      'Du förvandlar drömmar till verklighet',
-      'Din kreativitet är gränslös',
-      'Allt du behöver finns redan inom dig',
-      'Du är exakt där du ska vara',
-      'Universum stöttar dina visioner',
-      'Du är en kraft att räkna med',
-      'Dina projekt blomstrar och växer',
-      'Du attraherar framgång och överflöd',
-      'Din potential är obegränsad',
-      'Du skapar din egen framtid',
-      'Varje steg tar dig närmare dina mål'
-    ];
-
-    affirmations.forEach(affirmation => {
-      items.push({
-        text: affirmation,
-        type: 'affirmation',
-        color: new THREE.Color(0x6B8E7F) // Olive green
-      });
-    });
-
-    // Ideas and inspiration
-    const ideas = [
-      'Projection mapping som förändrar rum',
-      'AI som förstår och stöttar',
-      'Disc golf i solnedgången',
-      'Familj och kärlek',
-      'Kreativitet och innovation',
-      'Teknologi med själ',
-      'Konst som berör',
-      'Musik som förenar'
-    ];
-
-    ideas.forEach(idea => {
-      items.push({
-        text: idea,
-        type: 'idea',
-        color: new THREE.Color(0xE8A87C) // Warm orange
-      });
-    });
-
-    // Shuffle items for variety
-    return items.sort(() => Math.random() - 0.5);
   };
 
   // Initialize Three.js scene
@@ -128,7 +107,7 @@ export default function VisionPage() {
     cameraRef.current = camera;
 
     // Renderer setup
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     containerRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
@@ -231,39 +210,61 @@ export default function VisionPage() {
     };
   }, []);
 
-  // Create 3D text
+  // Create 3D text sprite
   const createTextMesh = (text: string, color: THREE.Color) => {
     if (!sceneRef.current) return;
 
-    const loader = new FontLoader();
-
-    // We'll use a simple sprite for now as FontLoader requires font files
-    // Create a canvas-based sprite instead
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    canvas.width = 512;
-    canvas.height = 128;
+    // Larger canvas for better quality
+    canvas.width = 1024;
+    canvas.height = 256;
 
-    // Draw text on canvas
-    context.fillStyle = '#000000';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.font = 'bold 48px Arial';
+    // Transparent background
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw text with glow effect
+    context.font = 'bold 64px Arial';
     context.fillStyle = `#${color.getHexString()}`;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
+
+    // Add subtle glow
+    context.shadowColor = `#${color.getHexString()}`;
+    context.shadowBlur = 20;
+
+    // Measure text to ensure it fits
+    const metrics = context.measureText(text);
+    const textWidth = metrics.width;
+
+    // Scale font if text is too wide
+    if (textWidth > canvas.width - 40) {
+      const scaleFactor = (canvas.width - 40) / textWidth;
+      const newSize = Math.floor(64 * scaleFactor);
+      context.font = `bold ${newSize}px Arial`;
+    }
+
     context.fillText(text, canvas.width / 2, canvas.height / 2);
 
-    // Create sprite
+    // Create sprite with transparent material
     const texture = new THREE.CanvasTexture(canvas);
-    const material = new THREE.SpriteMaterial({ map: texture });
+    const material = new THREE.SpriteMaterial({
+      map: texture,
+      transparent: true,
+      opacity: 0.9
+    });
     const sprite = new THREE.Sprite(material);
 
-    sprite.scale.set(8, 2, 1);
+    // Better scaling based on text length
+    const baseScale = 12;
+    const scale = Math.min(baseScale, baseScale * (50 / text.length));
+    sprite.scale.set(scale, scale / 4, 1);
+
     sprite.position.set(
-      (Math.random() - 0.5) * 10,
-      (Math.random() - 0.5) * 10,
+      (Math.random() - 0.5) * 15,
+      (Math.random() - 0.5) * 15,
       -50
     );
 
@@ -275,75 +276,100 @@ export default function VisionPage() {
   const startVision = async () => {
     setIsPlaying(true);
 
-    // Generate vision items
-    const items = await generateVisionItems();
-    visionItemsRef.current = items;
-    currentIndexRef.current = 0;
+    // Start background music
+    try {
+      musicAudioRef.current = new Audio('/spacejourney.mp3');
+      musicAudioRef.current.loop = true;
+      musicAudioRef.current.volume = 0.3;
+      await musicAudioRef.current.play();
+    } catch (error) {
+      console.error('Failed to play background music:', error);
+    }
 
-    // Play through items
-    const playNextItem = async () => {
-      if (currentIndexRef.current >= items.length) {
-        setIsPlaying(false);
-        setCurrentText('Vision Complete ✨');
+    // Generate poetic vision script
+    const script = await generateVisionScript();
+
+    // Split into phrases for text display
+    const phrases = script.split('\n').filter(p => p.trim());
+
+    // Spawn text sprites at intervals
+    let phraseIndex = 0;
+    const spawnInterval = setInterval(() => {
+      if (phraseIndex >= phrases.length || !isPlaying) {
+        clearInterval(spawnInterval);
         return;
       }
 
-      const item = items[currentIndexRef.current];
-      setCurrentText(item.text);
-      createTextMesh(item.text, item.color);
-
-      // Generate speech
-      try {
-        const response = await fetch(`${API_URL}/api/text-to-speech`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': API_KEY
-          },
-          body: JSON.stringify({
-            text: item.text,
-            voice_id: 'EXAVITQu4vr4xnSDxMaL' // Bella voice (female)
-          })
-        });
-
-        if (!response.ok) throw new Error('TTS failed');
-
-        const { audioBase64 } = await response.json();
-
-        // Play audio
-        const audio = new Audio();
-        audio.preload = 'auto';
-        audio.src = `data:audio/mpeg;base64,${audioBase64}`;
-
-        audio.onended = () => {
-          currentIndexRef.current++;
-          setTimeout(playNextItem, 1000); // 1 second pause between items
-        };
-
-        audio.onerror = () => {
-          currentIndexRef.current++;
-          setTimeout(playNextItem, 3000);
-        };
-
-        await audio.load();
-        await audio.play();
-        audioRef.current = audio;
-
-      } catch (error) {
-        console.error('TTS error:', error);
-        currentIndexRef.current++;
-        setTimeout(playNextItem, 3000);
+      const phrase = phrases[phraseIndex].trim();
+      if (phrase) {
+        const colors = [
+          new THREE.Color(0xC87D5E), // Terracotta
+          new THREE.Color(0x6B8E7F), // Olive
+          new THREE.Color(0xE8A87C), // Warm orange
+          new THREE.Color(0xFFFFFF)  // White
+        ];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        createTextMesh(phrase, color);
       }
-    };
 
-    playNextItem();
+      phraseIndex++;
+    }, 2000); // New text every 2 seconds
+
+    // Generate speech for the entire script
+    try {
+      const response = await fetch(`${API_URL}/api/text-to-speech`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY
+        },
+        body: JSON.stringify({
+          text: script,
+          voice_id: 'EXAVITQu4vr4xnSDxMaL' // Bella voice (female)
+        })
+      });
+
+      if (!response.ok) throw new Error('TTS failed');
+
+      const { audioBase64 } = await response.json();
+
+      // Play voice narration
+      const audio = new Audio();
+      audio.preload = 'auto';
+      audio.src = `data:audio/mpeg;base64,${audioBase64}`;
+
+      audio.onended = () => {
+        setTimeout(() => {
+          setIsPlaying(false);
+        }, 3000);
+      };
+
+      audio.onerror = () => {
+        console.error('Voice playback error');
+        setIsPlaying(false);
+      };
+
+      await audio.load();
+      await audio.play();
+      voiceAudioRef.current = audio;
+
+    } catch (error) {
+      console.error('TTS error:', error);
+      setTimeout(() => setIsPlaying(false), 30000); // 30 second fallback
+    }
   };
 
   const stopVision = () => {
     setIsPlaying(false);
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
+
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.pause();
+      voiceAudioRef.current = null;
+    }
+
+    if (musicAudioRef.current) {
+      musicAudioRef.current.pause();
+      musicAudioRef.current = null;
     }
   };
 
@@ -352,54 +378,43 @@ export default function VisionPage() {
       {/* Three.js container */}
       <div ref={containerRef} className="absolute inset-0" />
 
-      {/* Home button */}
+      {/* Home button - transparent */}
       <a
         href="/"
-        className="fixed top-4 left-4 z-50 text-3xl text-white hover:text-[#C87D5E] transition-colors bg-black/50 backdrop-blur-sm border-2 border-white/20 p-3 hover:border-[#C87D5E]"
+        className="fixed top-4 left-4 z-50 text-3xl text-white/80 hover:text-[#C87D5E] transition-colors backdrop-blur-sm border-2 border-white/10 p-3 hover:border-[#C87D5E]/50 bg-white/5"
         title="Tillbaka till start"
       >
         🏠
       </a>
 
-      {/* Controls */}
+      {/* Controls - transparent */}
       <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
         {!isPlaying ? (
           <button
             onClick={startVision}
             disabled={isLoading}
-            className="px-8 py-4 bg-gradient-to-r from-[#C87D5E] to-[#6B8E7F] text-white font-light text-lg border-2 border-white/30 hover:border-white transition-all disabled:opacity-50 backdrop-blur-sm"
+            className="px-8 py-4 bg-gradient-to-r from-[#C87D5E]/80 to-[#6B8E7F]/80 text-white font-light text-lg border-2 border-white/20 hover:border-white/40 transition-all disabled:opacity-50 backdrop-blur-md"
           >
             {isLoading ? '⏳ Laddar...' : '✨ Starta Vision'}
           </button>
         ) : (
           <button
             onClick={stopVision}
-            className="px-8 py-4 bg-black/70 text-white font-light text-lg border-2 border-red-500 hover:bg-red-500 transition-all backdrop-blur-sm"
+            className="px-8 py-4 bg-red-500/80 text-white font-light text-lg border-2 border-white/20 hover:border-white/40 transition-all backdrop-blur-md"
           >
             ⏹ Stoppa
           </button>
         )}
       </div>
 
-      {/* Current text display */}
-      {isPlaying && currentText && (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40 max-w-4xl w-full px-8">
-          <div className="bg-black/60 backdrop-blur-md border-2 border-[#C87D5E]/50 p-8 text-center">
-            <p className="text-white text-3xl md:text-5xl font-light leading-relaxed">
-              {currentText}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Instructions */}
+      {/* Instructions - transparent */}
       {!isPlaying && !isLoading && (
         <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40 max-w-2xl w-full px-8 text-center">
-          <h1 className="text-white text-6xl font-light mb-4">Vision Quest</h1>
-          <p className="text-white/80 text-xl font-light mb-8">
+          <h1 className="text-white/90 text-6xl font-light mb-4 drop-shadow-lg">Vision Quest</h1>
+          <p className="text-white/70 text-xl font-light mb-8 drop-shadow-md">
             En magisk resa genom dina drömmar och visioner
           </p>
-          <p className="text-white/60 text-sm font-light">
+          <p className="text-white/50 text-sm font-light drop-shadow-sm">
             Tryck på &quot;Starta Vision&quot; för att påbörja din psychedeliska resa
           </p>
         </div>
