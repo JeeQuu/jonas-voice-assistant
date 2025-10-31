@@ -86,7 +86,7 @@ app/
 │     └─ types.ts              # TypeScript interfaces
 │
 ├─ vision/
-│  └─ page.tsx                 # 3D space journey (Three.js visualization)
+│  └─ page.tsx                 # 3D space journey with live data (todos, calendar, emails)
 │
 ├─ mobile/
 │  └─ page.tsx                 # Mobile-optimized view
@@ -325,13 +325,60 @@ Three interaction modes for task management:
 - Stats display (total, completed, urgent)
 - Fetches tasks from backend via `useTasks()` hook
 
-### 6. **Vision Quest (3D Experience)**
-- **Three.js** 3D space visualization
-- Procedurally generated star field
-- Text particles floating in 3D space
+### 6. **Vision Quest (3D Experience)** - Enhanced Oct 31, 2025
+- **Three.js** 3D space visualization with real user data
+- Procedurally generated star field (3,000 particles)
+- **Live Data Integration**:
+  - ☐ Todos (incomplete tasks, terracotta cards)
+  - 📅 Calendar events (next 7 days, olive cards)
+  - 📧 Important emails (recent 5, warm orange cards)
+- **3D Visual Cards**: Rounded, color-coded, spatial organization
+  - Todos spawn on left side
+  - Calendar events spawn in center
+  - Emails spawn on right side
 - Poetic vision narration (personalized from Brainolf context)
 - First-person camera movement through space
-- Ambient audio with user voice narration
+- Ambient audio with ElevenLabs voice narration
+- **ADHD-Friendly**: Visual reminders floating through inspirational space
+
+**Technical Implementation**:
+```typescript
+// Data Fetching (app/vision/page.tsx:45-96)
+fetchUserData() {
+  // GET /api/todos (incomplete only, max 10)
+  // GET /api/calendar/events?startDate=...&endDate=... (next 7 days)
+  // GET /api/emails/recent?limit=5
+}
+
+// 3D Card Creation (app/vision/page.tsx:290-390)
+createDataObject(type, text, position) {
+  // Creates canvas with rounded rect background
+  // Type-specific colors & icons (☐ 📅 📧)
+  // Word-wrapped text rendering
+  // Three.js sprite with transparent material
+  // Positioned in spatial zones (x: -12 to +12)
+}
+
+// Animation Loop
+- Data cards move slower than text (0.015 vs 0.03 z-speed)
+- Gentle oscillation: rotation.y = sin(time + index) * 0.1
+- Auto-removal when z > 12 (passed camera)
+- Starfield rotates continuously for psychedelic effect
+```
+
+**Journey Flow**:
+1. User clicks "Starta Vision"
+2. `fetchUserData()` retrieves todos, calendar, emails
+3. Background music starts (`/spacejourney.mp3`)
+4. Data objects spawn sequentially (1.5s intervals)
+   - Todos on left (x: -12 to -8)
+   - Calendar in center (x: -2 to +2)
+   - Emails on right (x: +8 to +12)
+5. Affirmation text phrases spawn (2.5s intervals)
+6. ElevenLabs voice narration plays entire script
+7. All objects float toward camera in 3D space
+
+**Purpose**: Transform important life data (tasks, events, emails) into an inspiring, ADHD-friendly visual experience
 
 ### 7. **Mobile-First Audio**
 - **Touch to unlock**: Required on mobile browsers
@@ -654,6 +701,11 @@ app.get('/api/endpoint', authenticate, async (req, res) => {
 ## 🔄 Recent Changes (Context)
 
 ### Oct 31, 2025 (Latest Updates)
+- ✅ **Vision Quest enhanced** - Now displays live todos, calendar events, and emails in 3D space
+  - Real data integration from backend APIs
+  - Color-coded 3D cards (todos=terracotta, calendar=olive, emails=orange)
+  - Spatial organization (left/center/right zones)
+  - ADHD-friendly visual reminders floating through space
 - ✅ **Receipt OCR simplified** - Now uses only OpenRouter (removed Anthropic direct API)
 - ✅ **Single API key architecture** - One OpenRouter key for all AI operations
 - ✅ **PDF support fixed** - Proper OpenRouter file parser integration with mistral-ocr
@@ -816,7 +868,7 @@ app.get('/api/endpoint', authenticate, async (req, res) => {
 - Daily automation (7 AM sync, cleanup, summaries)
 - HeyGen avatar (3D streaming working)
 - Flow dashboard (3 modes: Magnetic, Flow, Focus)
-- Vision Quest (3D space visualization)
+- Vision Quest (3D space visualization with live todos, calendar, emails)
 
 ### 📊 Key Metrics:
 - **Receipts**: 1,080 total (55 in Oct, 334 in Sept, 319 in Aug)

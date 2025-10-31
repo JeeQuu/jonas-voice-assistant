@@ -6,6 +6,26 @@ import * as THREE from 'three';
 const API_URL = 'https://quant-show-api.onrender.com';
 const API_KEY = 'JeeQuuFjong';
 
+interface TodoItem {
+  text: string;
+  completed: boolean;
+  dueDate?: string;
+}
+
+interface CalendarEvent {
+  summary: string;
+  start: string;
+  end: string;
+  calendar: string;
+}
+
+interface EmailItem {
+  subject: string;
+  from: string;
+  snippet: string;
+  date: string;
+}
+
 export default function VisionPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -14,9 +34,66 @@ export default function VisionPage() {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const textMeshesRef = useRef<THREE.Mesh[]>([]);
+  const dataObjectsRef = useRef<THREE.Mesh[]>([]);
   const starsRef = useRef<THREE.Points | null>(null);
   const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
   const musicAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [todos, setTodos] = useState<TodoItem[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
+  const [emails, setEmails] = useState<EmailItem[]>([]);
+
+  // Fetch user data (todos, calendar, emails)
+  const fetchUserData = async () => {
+    try {
+      // Fetch todos
+      const todosRes = await fetch(`${API_URL}/api/todos`, {
+        headers: { 'x-api-key': API_KEY }
+      });
+      if (todosRes.ok) {
+        const todosData = await todosRes.json();
+        // Get incomplete todos only
+        const incompleteTodos = todosData.todos?.filter((t: any) => !t.completed).slice(0, 10) || [];
+        setTodos(incompleteTodos.map((t: any) => ({
+          text: t.text,
+          completed: t.completed,
+          dueDate: t.dueDate
+        })));
+      }
+
+      // Fetch calendar events (next 7 days)
+      const now = new Date();
+      const weekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const calendarRes = await fetch(
+        `${API_URL}/api/calendar/events?startDate=${now.toISOString()}&endDate=${weekLater.toISOString()}`,
+        { headers: { 'x-api-key': API_KEY } }
+      );
+      if (calendarRes.ok) {
+        const calendarData = await calendarRes.json();
+        setCalendarEvents((calendarData.events || []).slice(0, 10).map((e: any) => ({
+          summary: e.summary || 'Ingen titel',
+          start: e.start,
+          end: e.end,
+          calendar: e.calendar || 'personal'
+        })));
+      }
+
+      // Fetch recent important emails
+      const emailsRes = await fetch(`${API_URL}/api/emails/recent?limit=5`, {
+        headers: { 'x-api-key': API_KEY }
+      });
+      if (emailsRes.ok) {
+        const emailsData = await emailsRes.json();
+        setEmails((emailsData.emails || []).map((e: any) => ({
+          subject: e.subject || 'Ingen ämne',
+          from: e.from || 'Okänd avsändare',
+          snippet: e.snippet || '',
+          date: e.date
+        })));
+      }
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+    }
+  };
 
   // Generate poetic vision script
   const generateVisionScript = async (): Promise<string> => {
@@ -178,6 +255,18 @@ Och din resa har bara börjat.`;
         }
       });
 
+      // Move and rotate data objects (todos, calendar, emails)
+      dataObjectsRef.current.forEach((mesh, index) => {
+        mesh.position.z += 0.015; // Slower than text for prominence
+        mesh.rotation.y = Math.sin(Date.now() * 0.001 + index) * 0.1; // Gentle oscillation
+
+        // Remove if too close to camera
+        if (mesh.position.z > 12) {
+          scene.remove(mesh);
+          dataObjectsRef.current.splice(index, 1);
+        }
+      });
+
       // Camera slight movement for immersion
       if (cameraRef.current) {
         cameraRef.current.position.x = Math.sin(Date.now() * 0.0001) * 0.5;
@@ -199,7 +288,10 @@ Och din resa har bara börjat.`;
 
     window.addEventListener('resize', handleResize);
 
-    setIsLoading(false);
+    // Fetch user data on load
+    fetchUserData().then(() => {
+      setIsLoading(false);
+    });
 
     // Cleanup
     return () => {
@@ -209,6 +301,108 @@ Och din resa har bara börjat.`;
       }
     };
   }, []);
+
+  // Create 3D data object (todo, calendar event, or email)
+  const createDataObject = (
+    type: 'todo' | 'calendar' | 'email',
+    text: string,
+    position: { x: number; y: number; z: number }
+  ) => {
+    if (!sceneRef.current) return;
+
+    // Create canvas for text
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    canvas.width = 512;
+    canvas.height = 256;
+
+    // Set colors based on type
+    let bgColor: string;
+    let textColor: string;
+    let icon: string;
+
+    if (type === 'todo') {
+      bgColor = '#C87D5E'; // Terracotta
+      textColor = '#FFFFFF';
+      icon = '☐';
+    } else if (type === 'calendar') {
+      bgColor = '#6B8E7F'; // Olive
+      textColor = '#FFFFFF';
+      icon = '📅';
+    } else {
+      bgColor = '#E8A87C'; // Warm orange
+      textColor = '#FFFFFF';
+      icon = '📧';
+    }
+
+    // Draw rounded rectangle background
+    context.fillStyle = bgColor;
+    const radius = 20;
+    context.beginPath();
+    context.moveTo(radius, 0);
+    context.lineTo(canvas.width - radius, 0);
+    context.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
+    context.lineTo(canvas.width, canvas.height - radius);
+    context.quadraticCurveTo(canvas.width, canvas.height, canvas.width - radius, canvas.height);
+    context.lineTo(radius, canvas.height);
+    context.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
+    context.lineTo(0, radius);
+    context.quadraticCurveTo(0, 0, radius, 0);
+    context.closePath();
+    context.fill();
+
+    // Draw icon
+    context.font = 'bold 48px Arial';
+    context.fillStyle = textColor;
+    context.textAlign = 'left';
+    context.textBaseline = 'top';
+    context.fillText(icon, 20, 20);
+
+    // Draw text
+    context.font = 'bold 28px Arial';
+    context.textAlign = 'left';
+    context.textBaseline = 'top';
+
+    // Word wrap text
+    const maxWidth = canvas.width - 90;
+    const words = text.split(' ');
+    let line = '';
+    let y = 30;
+    const lineHeight = 35;
+
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line + words[i] + ' ';
+      const metrics = context.measureText(testLine);
+
+      if (metrics.width > maxWidth && i > 0) {
+        context.fillText(line, 80, y);
+        line = words[i] + ' ';
+        y += lineHeight;
+        if (y > canvas.height - lineHeight) break;
+      } else {
+        line = testLine;
+      }
+    }
+    context.fillText(line, 80, y);
+
+    // Create sprite
+    const texture = new THREE.CanvasTexture(canvas);
+    const material = new THREE.SpriteMaterial({
+      map: texture,
+      transparent: true,
+      opacity: 0.95
+    });
+    const sprite = new THREE.Sprite(material);
+
+    // Scale based on importance
+    sprite.scale.set(8, 4, 1);
+    sprite.position.set(position.x, position.y, position.z);
+
+    sceneRef.current.add(sprite);
+    dataObjectsRef.current.push(sprite as any);
+  };
 
   // Create 3D text sprite
   const createTextMesh = (text: string, color: THREE.Color) => {
@@ -276,6 +470,9 @@ Och din resa har bara börjat.`;
   const startVision = async () => {
     setIsPlaying(true);
 
+    // Fetch user data first
+    await fetchUserData();
+
     // Start background music
     try {
       musicAudioRef.current = new Audio('/spacejourney.mp3');
@@ -286,13 +483,51 @@ Och din resa har bara börjat.`;
       console.error('Failed to play background music:', error);
     }
 
+    // Spawn data objects in space
+    setTimeout(() => {
+      // Spawn todos on the left side
+      todos.forEach((todo, index) => {
+        setTimeout(() => {
+          createDataObject('todo', todo.text, {
+            x: -12 + Math.random() * 4,
+            y: (index - todos.length / 2) * 3,
+            z: -40 - index * 5
+          });
+        }, index * 1500);
+      });
+
+      // Spawn calendar events in the center
+      calendarEvents.forEach((event, index) => {
+        setTimeout(() => {
+          const eventText = `${event.summary} - ${new Date(event.start).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+          createDataObject('calendar', eventText, {
+            x: -2 + Math.random() * 4,
+            y: (index - calendarEvents.length / 2) * 3,
+            z: -50 - index * 5
+          });
+        }, index * 1500 + 500);
+      });
+
+      // Spawn emails on the right side
+      emails.forEach((email, index) => {
+        setTimeout(() => {
+          const emailText = `${email.from}: ${email.subject}`;
+          createDataObject('email', emailText, {
+            x: 8 + Math.random() * 4,
+            y: (index - emails.length / 2) * 3,
+            z: -60 - index * 5
+          });
+        }, index * 1500 + 1000);
+      });
+    }, 2000);
+
     // Generate poetic vision script
     const script = await generateVisionScript();
 
     // Split into phrases for text display
     const phrases = script.split('\n').filter(p => p.trim());
 
-    // Spawn text sprites at intervals
+    // Spawn text sprites at intervals (after data objects)
     let phraseIndex = 0;
     const spawnInterval = setInterval(() => {
       if (phraseIndex >= phrases.length || !isPlaying) {
@@ -313,7 +548,7 @@ Och din resa har bara börjat.`;
       }
 
       phraseIndex++;
-    }, 2000); // New text every 2 seconds
+    }, 2500); // New text every 2.5 seconds
 
     // Generate speech for the entire script
     try {
@@ -412,8 +647,14 @@ Och din resa har bara börjat.`;
         <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40 max-w-2xl w-full px-8 text-center">
           <h1 className="text-white/90 text-6xl font-light mb-4 drop-shadow-lg">Vision Quest</h1>
           <p className="text-white/70 text-xl font-light mb-8 drop-shadow-md">
-            En magisk resa genom dina drömmar och visioner
+            En magisk resa genom dina drömmar, visioner och livet
           </p>
+          <div className="text-white/60 text-base font-light mb-6 drop-shadow-sm space-y-2">
+            <p>✨ Dina affirmationer och visioner</p>
+            <p>☐ Dina todos ({todos.length} aktiva)</p>
+            <p>📅 Kommande händelser ({calendarEvents.length} nästa vecka)</p>
+            <p>📧 Viktiga email ({emails.length} senaste)</p>
+          </div>
           <p className="text-white/50 text-sm font-light drop-shadow-sm">
             Tryck på &quot;Starta Vision&quot; för att påbörja din psychedeliska resa
           </p>
