@@ -11,26 +11,45 @@ When you (AI agent) are brought into this project, read this file first to under
 **Name**: Jonas Voice Assistant (aka "Quant Show")
 **Purpose**: Personal AI assistant with 30+ integrated operations
 **Owner**: Jonas Quant
-**Tech Stack**: Next.js 14 (App Router), Supabase, Claude 3.5 Sonnet, ElevenLabs
+**Tech Stack**: Next.js 15.5.3 (App Router), Supabase, Claude 3.5 Sonnet, HeyGen Avatar, ElevenLabs
 **Production**: https://jonas-voice-assistant.vercel.app
 **Backend API**: https://quant-show-api.onrender.com
+
+**Key Features**:
+- 🎤 Voice & text chat with Claude 3.5 Sonnet
+- 🤖 Interactive 3D HeyGen avatar that speaks responses
+- 📋 ADHD-friendly Flow dashboard with physics-based task management
+- 🌌 Vision Quest: 3D psychedelic space journey (Three.js)
+- 📧 Gmail sync & email intelligence
+- 📅 Google Calendar integration (2 calendars)
+- 💰 Receipt OCR & financial tracking
+- 🧠 Brainolf 2.0 context system (3-layer memory)
+- ⏰ Automated daily sync cronjobs
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-Frontend (Next.js):
-├─ / (homepage - start hub)
-├─ /chat (AI conversation interface)
-└─ /flow (ADHD-friendly task dashboard)
+Frontend (Next.js 15.5.3 on Vercel):
+├─ / (homepage - Morning Zen meditation + Daily Briefing)
+├─ /chat (AI conversation with HeyGen avatar + voice recording)
+├─ /flow (Physics-based task management - Magnetic/Flow/Focus modes)
+├─ /vision (3D space journey with Three.js)
+└─ /mobile (Mobile-optimized view)
 
-Backend (Express API on Render):
-├─ 30+ API endpoints
-├─ Claude 3.5 Sonnet integration
-├─ Gmail/Calendar API
-├─ Supabase database
-└─ ElevenLabs text-to-speech
+Backend (Express.js on Render):
+├─ 46+ API endpoints (server.js + modules)
+├─ Claude 3.5 Sonnet via OpenRouter (with 30 tools)
+├─ HeyGen Streaming Avatar API
+├─ Gmail/Calendar/Dropbox APIs
+├─ Supabase PostgreSQL database
+├─ ElevenLabs text-to-speech
+├─ OpenAI Whisper transcription
+└─ Cron jobs (daily sync, cleanup, summaries)
+
+Data Flow:
+Frontend → Next.js API Routes → Tool Executor → Backend API → External Services
 ```
 
 ---
@@ -40,32 +59,127 @@ Backend (Express API on Render):
 ### Frontend (Next.js App Router)
 ```
 app/
-├─ page.tsx                    # Homepage (start hub)
-├─ chat/page.tsx               # Main AI chat interface
+├─ page.tsx                    # Homepage (Morning Zen + Daily Briefing)
+├─ layout.tsx                  # Root layout with metadata
+├─ globals.css                 # Tailwind + custom styles
+│
+├─ chat/
+│  ├─ page.tsx                 # Main AI chat interface with voice
+│  └─ components/
+│     └─ HeyGenAvatar.tsx      # Interactive 3D avatar (speaks responses)
+│
 ├─ flow/
 │  ├─ page.tsx                 # FLOW dashboard wrapper
 │  ├─ components/
-│  │  ├─ DailyBriefing.tsx    # Daily briefing component
-│  │  ├─ FlowMode.tsx          # FLOW mode visualization
-│  │  ├─ MagneticField.tsx     # Magnetic task field
-│  │  └─ FocusMode.tsx         # Single-task focus mode
-│  └─ hooks/
-│     └─ useTasks.ts           # Task management hook
-└─ globals.css                 # Tailwind + custom styles
+│  │  ├─ DailyBriefing.tsx    # Daily briefing display
+│  │  ├─ FlowMode.tsx          # Text-based flow visualization
+│  │  ├─ MagneticField.tsx    # Physics-based draggable task cards
+│  │  ├─ MagneticCard.tsx     # Individual magnetic task card
+│  │  ├─ TaskCard.tsx          # Alternative task card design
+│  │  └─ FocusMode.tsx         # Minimalist single-task focus
+│  ├─ hooks/
+│  │  ├─ useTasks.ts           # Task management & data fetching
+│  │  └─ usePhysics.ts         # Physics simulation for magnetic mode
+│  └─ utils/
+│     ├─ categoryStyles.ts     # Tailwind styles for task categories
+│     ├─ soundEffects.ts       # Audio effect management
+│     └─ types.ts              # TypeScript interfaces
+│
+├─ vision/
+│  └─ page.tsx                 # 3D space journey (Three.js visualization)
+│
+├─ mobile/
+│  └─ page.tsx                 # Mobile-optimized view
+│
+└─ api/                        # Next.js API routes (backend integration)
+   ├─ chat/route.ts            # Claude AI chat endpoint
+   ├─ heygen/token/route.ts    # HeyGen session token
+   ├─ session/
+   │  ├─ start/route.ts        # Initialize session
+   │  ├─ end/route.ts          # Close session with summary
+   │  └─ save/route.ts         # Save session data
+   ├─ user-context/
+   │  ├─ summary/route.ts      # Fetch Brainolf 2.0 context
+   │  └─ insight/route.ts      # Save insights
+   ├─ user-health/today/route.ts  # Daily health data
+   ├─ voice-simple/route.ts    # Whisper transcription
+   ├─ text-simple/route.ts     # Text processing
+   └─ test-env/route.ts        # Environment testing
+
+lib/
+├─ tools-config.ts             # All 30 tool definitions for Claude
+├─ tool-executor.ts            # Tool execution & backend integration
+└─ jonas-voice-sdk.js          # SDK for voice interactions
+
+public/
+├─ sounds/                     # Audio files & meditation music
+└─ spacejourney.mp3            # Background music for Vision Quest
 ```
 
-### Backend API (Express)
+### Backend API (Express on Render)
 ```
-api/
-├─ server.js                   # Main Express server (all routes)
-├─ daily-context.js            # AI daily intelligence layer
-├─ morning-meditation.js       # Meditation generator
-├─ user-context.js             # Brainolf 2.0 context engine
-├─ user-health.js              # Health tracking
-├─ memory-store.js             # Conversation memory
-├─ sync-gmail-to-memory.js     # Email → memory sync
-├─ receipt-*.js                # Receipt OCR & tracking
-└─ contacts.js, projects.js, invoices.js
+api/  (46+ JavaScript files)
+├─ server.js                          # Main Express server (1,500+ lines)
+│
+├─ Core AI & Context
+│  ├─ daily-context.js                # Daily intelligence briefing
+│  ├─ morning-meditation.js           # Meditation content generator
+│  ├─ user-context.js                 # Brainolf 2.0 context engine (3 layers)
+│  ├─ user-health.js                  # Health tracking (mood, energy, stress)
+│  └─ session-end.js                  # Session closure with AI summary
+│
+├─ Memory Management
+│  ├─ memory-store.js                 # Store memories to Supabase
+│  ├─ memory-search.js                # Search with semantic expansion
+│  └─ memory-delete.js                # Delete memories
+│
+├─ Email Integration (Gmail)
+│  ├─ sync-gmail-to-memory.js        # Gmail → smart_memories sync
+│  ├─ gmail-send.js                   # Send email via Gmail
+│  ├─ gmail-direct-search.js          # IMAP search (Inbox + Sent)
+│  ├─ email-formatter.js              # HTML email formatting
+│  └─ extract-receipts.js             # Extract receipts from emails
+│
+├─ Calendar Integration
+│  ├─ sync-calendar-to-memory.js     # Google Calendar → memory sync
+│  └─ calendar-events.js              # Calendar helpers (2 calendars)
+│
+├─ Receipt Tracking (12 files)
+│  ├─ receipt-store.js                # Store receipt data
+│  ├─ receipt-ocr.js                  # OCR extraction
+│  ├─ receipt-analytics.js            # Spending analytics
+│  ├─ receipt-flags.js                # Flagged receipts
+│  ├─ receipt-ai-classifier.js        # AI categorization
+│  ├─ subscription-detector.js        # Recurring charge detection
+│  └─ renewal-notices-*.js            # Subscription renewal tracking
+│
+├─ Dropbox Integration (6 files)
+│  ├─ dropbox-upload.js               # Upload to Dropbox
+│  ├─ dropbox-list.js                 # List files
+│  ├─ dropbox-download.js             # Download files
+│  ├─ dropbox-copy.js                 # Copy files
+│  ├─ dropbox-move.js                 # Move files
+│  └─ organize-receipts.js            # Auto-organize receipts
+│
+├─ CRM & Structured Data
+│  ├─ contacts.js                     # Contact management
+│  ├─ projects.js                     # Project tracking
+│  └─ invoices.js                     # Invoice management
+│
+├─ Utilities
+│  ├─ trigger-sync.js                 # Manual sync trigger
+│  ├─ html-to-pdf-simple.js          # PDF conversion
+│  └─ subscriptions.js                # Subscription management
+│
+└─ Cron Jobs
+   ├─ daily-sync.js                   # Main sync orchestrator (7 AM)
+   ├─ cleanup-emails.js               # AI-based email filtering
+   ├─ daily-summary.js                # Daily report email
+   ├─ close-inactive-sessions.js      # Auto-close ghost sessions
+   └─ check-missing-receipts.js       # Receipt validation
+
+migrations/                           # Database schema migrations
+└─ *.sql files for Supabase schema
 ```
 
 ### Configuration
@@ -73,12 +187,29 @@ api/
 .env.local (local dev)
 .env (production - Vercel/Render)
 
-Required keys:
-- OPENROUTER_API_KEY         # Claude 3.5 Sonnet
-- ELEVEN_LABS_KEY            # Text-to-speech
-- SUPABASE_URL & SUPABASE_KEY
-- GOOGLE_CLIENT_*            # Gmail/Calendar OAuth
-- NEXT_PUBLIC_API_KEY="JeeQuuFjong"
+Required Frontend Keys:
+- OPENROUTER_API_KEY                # Claude 3.5 Sonnet via OpenRouter
+- OPENAI_API_KEY                    # Whisper transcription
+- HEYGEN_API_KEY                    # Avatar interaction
+- NEXT_PUBLIC_HEYGEN_AVATAR_ID      # Avatar ID (Katya_ProfessionalLook2_public)
+- SUPABASE_URL & SUPABASE_SERVICE_KEY
+- NEXT_PUBLIC_API_URL               # Backend API URL
+- NEXT_PUBLIC_API_KEY               # Backend auth ("JeeQuuFjong")
+
+Required Backend Keys:
+- API_KEY="JeeQuuFjong"                  # Backend authentication
+- SUPABASE_URL & SUPABASE_ANON_KEY & SUPABASE_SERVICE_KEY
+- GMAIL_USER & GMAIL_APP_PASSWORD        # Gmail IMAP/SMTP
+- GOOGLE_CALENDAR_ID                     # Primary calendar (jonasquant@gmail.com)
+- GOOGLE_SHARED_CALENDAR_ID              # Shared calendar (1np85dkiru57r752i9ssseuuic@group.calendar.google.com)
+- GOOGLE_SERVICE_ACCOUNT_JSON            # Google APIs credentials
+- OPENAI_KEY                             # OpenRouter API key (PRIMARY - used for ALL AI)
+- OPENROUTER_API_KEY                     # Same as OPENAI_KEY (fallback)
+- ELEVEN_LABS_KEY                        # Text-to-speech
+- DROPBOX_ACCESS_TOKEN                   # Dropbox integration
+
+**Important:** CLAUDE_KEY is NO LONGER NEEDED (removed Oct 31, 2025)
+**All AI operations now use OpenRouter only (GPT-4o + Claude 3.5 fallback)**
 ```
 
 ---
@@ -121,11 +252,33 @@ Disabled:    #E8E2D5, #A89E92
 
 ## 🧠 Core Concepts
 
-### 1. **Brainolf 2.0**
-The AI personality engine (Claude 3.5 Sonnet via OpenRouter).
-- **Tone**: Warm, Swedish, ADHD-friendly
-- **Context**: User preferences, relationships, habits stored in Supabase
-- **Memory**: Long-term conversation memory with vector search
+### 1. **Brainolf 2.0 + Claude 3.5 Sonnet**
+The AI personality engine with 30 integrated tools.
+- **AI Model**: Claude 3.5 Sonnet via OpenRouter
+- **Tone**: Warm, Swedish, ADHD-friendly, proactive
+- **Context**: 3-layer system (core identity, current state, recent activity)
+- **Memory**: Long-term conversation memory with AI summaries
+- **Tools**: 30 operations for Gmail, Calendar, Todos, Memory, Receipts, Dropbox
+
+**30 Tools Available to Claude:**
+1-2. **Gmail**: search_gmail, send_email
+3-6. **Calendar**: get_calendar_events, create/update/delete_calendar_event
+7-10. **Todos**: get_todos, create_todo, update_todo, delete_todo
+11-12. **Memory**: search_memory, store_memory
+13-15. **Receipts**: get_receipt_analytics, extract_receipts_from_email, get_vendor_spending
+16-17. **Subscriptions**: list_subscriptions, manage_subscription
+18-22. **Dropbox**: list/upload/download/copy/delete_file
+23-28. **Brainolf Context**: get_user_context, get_user_health, save_insight, get_daily_context, get_context_history, update_context_section
+29-30. **Daily Sync**: trigger_daily_sync, get_daily_briefing
+
+**Tool Executor Pattern** (lib/tool-executor.ts):
+```typescript
+executeTool(toolName, params) {
+  // Maps tool name to backend API endpoint
+  // Handles authentication with x-api-key
+  // Returns results to Claude for response generation
+}
+```
 
 ### 2. **User Context System**
 ```javascript
@@ -135,15 +288,56 @@ The AI personality engine (Claude 3.5 Sonnet via OpenRouter).
 └─ Recent context (last 7 days)
 ```
 
-### 3. **Session Management**
+### 3. **HeyGen Interactive Avatar**
+- **3D Avatar**: Katya (professional look) speaks AI responses
+- **Streaming**: Real-time video stream from HeyGen API
+- **Natural Speech**: Emotion, prosody, facial expressions
+- **Session Token**: Generated via `/api/heygen/token`
+- **Events**: Avatar lifecycle (talking, stopped, disconnected)
+
+### 4. **Session Management**
 - Chat sessions auto-close after 30min inactivity
-- Conversations → summarized → stored in memory
+- Conversations → AI summary (Claude) → stored in memory
+- AI extracts: summary, topics, importance (1-5), insights
+- Insights saved to `user_context` if importance >= 3
 - Cronjob closes ghost sessions nightly
 
-### 4. **Mobile-First Audio**
+### 5. **Flow Dashboard (ADHD-Friendly)**
+Three interaction modes for task management:
+
+**Magnetic Mode**: Physics-based draggable task cards
+- Magnetic attraction between cards
+- Global background swipe detection
+- Visual momentum & friction
+- Sound effects for interactions
+
+**Flow Mode**: Linear, text-based task flow
+- Clean list view
+- Quick completion toggles
+
+**Focus Mode**: Minimalist single-task view
+- One task at a time
+- Distraction-free interface
+
+**Features**:
+- Background Zen meditation music
+- Task categories with color coding
+- Stats display (total, completed, urgent)
+- Fetches tasks from backend via `useTasks()` hook
+
+### 6. **Vision Quest (3D Experience)**
+- **Three.js** 3D space visualization
+- Procedurally generated star field
+- Text particles floating in 3D space
+- Poetic vision narration (personalized from Brainolf context)
+- First-person camera movement through space
+- Ambient audio with user voice narration
+
+### 7. **Mobile-First Audio**
 - **Touch to unlock**: Required on mobile browsers
 - Audio context must be initialized by user interaction
 - All playback uses `preload='auto'` + `load()` pattern
+- Try/catch for NotAllowedError on mobile
 
 ---
 
@@ -176,21 +370,43 @@ await audio.play(); // Wrap in try/catch for mobile
 
 ---
 
-## 📊 Database (Supabase)
+## 📊 Database (Supabase PostgreSQL)
 
 ### Main Tables
 ```sql
-emails               -- Gmail sync
-calendar_events      -- Google Calendar sync
-todos                -- Task management
-conversation_memories -- Chat history (vector search)
-user_context         -- Brainolf 2.0 core data
-user_health          -- Daily mood/energy tracking
-receipts             -- OCR-scanned receipts
-subscriptions        -- Recurring payments
-contacts             -- Key people
-projects             -- Ongoing work
-invoices             -- Financial obligations
+-- Conversation System (3-layer memory)
+conversation_sessions   -- Full chat sessions with JSONB messages
+                       -- Auto-closes after 30min inactivity
+                       -- AI-generated summary, topics, importance
+daily_summaries        -- Daily compression of conversations
+weekly_summaries       -- Weekly high-level summaries
+
+-- Brainolf 2.0 Context System
+user_context           -- 3 layers: core (identity), current (active), recent (temporal)
+                       -- Sections: identity, projects, economy, relationships, health
+user_health            -- Daily tracking: mood_score, energy_level, stress_level, sleep_quality
+user_context_history   -- Audit trail of context changes
+
+-- Memory & Email
+smart_memories         -- Email/memory storage with JSONB data
+                       -- type: email, memory, conversation
+                       -- importance scoring (1-5)
+                       -- metadata (JSONB)
+memories               -- Legacy memory table (still used)
+
+-- Financial Tracking
+receipts               -- OCR-scanned receipts
+                       -- vendor, amount, date, category, confidence
+renewal_notices        -- Subscription renewal tracking
+subscriptions          -- Recurring payments
+
+-- CRM
+contacts               -- Key people
+projects               -- Ongoing work
+invoices               -- Financial obligations
+
+-- Tasks
+todos                  -- Task management with calendar integration
 ```
 
 ### User Context Structure
@@ -331,7 +547,132 @@ app.get('/api/endpoint', authenticate, async (req, res) => {
 
 ---
 
+## 🧾 Receipt OCR System (Simplified Oct 31, 2025)
+
+**Architecture:** Single API key (OpenRouter) with dual-model fallback
+
+### How It Works:
+1. **Primary**: OpenRouter → GPT-4o vision model
+2. **Fallback**: OpenRouter → Claude 3.5 Sonnet (if GPT-4o fails)
+3. **PDF Support**: Uses OpenRouter file parser with mistral-ocr engine
+
+### Supported Formats:
+- ✅ PDFs (using `type: "file"` with mistral-ocr plugin)
+- ✅ Images (JPG, PNG, WebP using `type: "image_url"`)
+
+### Extraction Output:
+```json
+{
+  "vendor": "ElevenLabs",
+  "amount": 22,
+  "currency": "USD",
+  "date": "2025-10-27",
+  "items": ["Creator subscription"],
+  "category": "subscription",
+  "confidence": 0.95,
+  "notes": "Invoice for subscription service"
+}
+```
+
+### Smart Validation:
+- Currency detection ($ = USD, kr = SEK, € = EUR)
+- Vendor normalization (PayPal Inc → PayPal)
+- Hard-coded USD vendors (ElevenLabs, OpenAI, Anthropic, etc.)
+- Suspicious amount flagging (<5 SEK or >50,000 SEK)
+- Vendor-specific validation (Netflix should be 100-300 SEK)
+
+### Statistics:
+- **1,080+ receipts** tracked as of Oct 31, 2025
+- **Auto-naming**: `YYYY-MM-DD_Vendor.pdf`
+- **Auto-upload** to Dropbox `/Kvitton` folder
+- **Monthly analytics** available via `/api/receipt-analytics`
+
+### Cost:
+- ~$2 per 1,000 pages (mistral-ocr)
+- Typical receipt: ~$0.002 per extraction
+- Much cheaper than separate Anthropic API
+
+---
+
+## 🤖 Automated Cron Jobs
+
+### Daily Sync (7:00 AM Daily)
+**File**: `cron/daily-sync.js`
+**Orchestrates**:
+1. Gmail sync (7 days back) → `smart_memories`
+2. Calendar sync (14 days ahead) → `smart_memories`
+3. Email cleanup (AI-based filtering)
+4. Receipt extraction (before deletion)
+5. Daily summary email generation
+
+**Render Cron**: Scheduled via Render Cron Jobs service
+
+### Email Cleanup (Part of Daily Sync)
+**File**: `cron/cleanup-emails.js`
+**AI-Based Filtering**:
+- Deletes spam, newsletters, notifications
+- Preserves receipts (importance >= 4)
+- Preserves family/work emails
+- Extracts receipts to Dropbox before deletion
+
+**Deletion Criteria**:
+- LinkedIn/GitHub/Spotify notifications
+- Marketing emails with unsubscribe links
+- Auto-generated notifications (noreply@...)
+
+**Preservation Criteria**:
+- Receipts & invoices (importance >= 4)
+- Family emails (Sonja, Lina)
+- Work/project emails
+- High importance (>= 3)
+
+### Daily Summary Email
+**File**: `cron/daily-summary.js`
+**Generates HTML email with**:
+- Email sync statistics
+- Calendar events for today
+- Recent emails (24h)
+- Extracted receipts
+- Deleted email list
+- Sent to: `jonasquant@gmail.com`
+
+### Close Inactive Sessions
+**Endpoint**: `POST /api/cron/close-sessions`
+**Logic**:
+- Identifies sessions > 30 min inactive
+- Generates AI summary using Claude
+- Extracts topics and importance
+- Saves insights to `user_context`
+
+### Memory Cleanup
+**Endpoints**:
+- `POST /api/cron/daily-cleanup` - Daily memory cleanup
+- `POST /api/cron/weekly-cleanup` - Weekly cleanup
+
+---
+
 ## 🔄 Recent Changes (Context)
+
+### Oct 31, 2025 (Latest Updates)
+- ✅ **Receipt OCR simplified** - Now uses only OpenRouter (removed Anthropic direct API)
+- ✅ **Single API key architecture** - One OpenRouter key for all AI operations
+- ✅ **PDF support fixed** - Proper OpenRouter file parser integration with mistral-ocr
+- ✅ **Receipt system validated** - 1,080+ receipts tracked, system fully operational
+- ✅ **Dual calendar support** - Personal + "Lina och Jonas" shared calendar
+- ✅ **Gmail/Calendar verified** - All connections working perfectly
+- ✅ **Cost optimization** - Removed need for separate Anthropic account
+
+### Oct 30, 2025
+- ✅ **Next.js 15.5.3** upgrade (from 14)
+- ✅ **React 19** integration
+- ✅ **HeyGen Interactive Avatar** with 3D streaming
+- ✅ **Vision Quest** 3D space journey (Three.js)
+- ✅ **Flow Dashboard** physics-based task management (3 modes)
+- ✅ **30 Claude Tools** fully integrated
+- ✅ **Cron automation** for daily sync, cleanup, summaries
+- ✅ **46+ API endpoints** on backend
+- ✅ **Framer Motion** for advanced animations
+- ✅ Complete earthy design system
 
 ### Oct 23, 2025
 - ✅ Complete UI redesign (earthy minimalist)
@@ -340,16 +681,17 @@ app.get('/api/endpoint', authenticate, async (req, res) => {
 - ✅ Home buttons on all pages
 - ✅ Removed gradients, added jordnära colors
 
-### Oct 22, 2025
-- ✅ Fixed mobile audio playback
-- ✅ Improved meditation generation
-- ✅ Added conversation memory search
+### Oct 20, 2025
+- ✅ Email sync cronjobs (sync-gmail-to-memory)
+- ✅ Daily summary generation
+- ✅ Receipt extraction automation
+- ✅ Ghost session cleanup
 
-### Previous
-- Email sync cronjobs
-- Receipt OCR system
-- Session management
-- Brainolf 2.0 context engine
+### Previous Milestones
+- Receipt OCR system with Dropbox integration
+- Brainolf 2.0 context engine (3-layer system)
+- Session management with AI summaries
+- Multi-calendar support (Personal + Lina och Jonas)
 
 ---
 
@@ -416,5 +758,77 @@ app.get('/api/endpoint', authenticate, async (req, res) => {
 
 ---
 
-**Last Updated**: October 23, 2025
+---
+
+## 📦 Technology Summary
+
+**Frontend Stack:**
+- Next.js 15.5.3 (App Router)
+- React 19.1.0
+- TypeScript 5
+- Tailwind CSS 4
+- Framer Motion 12.23.22
+- Three.js 0.180.0
+- HeyGen Streaming Avatar 2.1.0
+- WaveSurfer.js 7.10.1
+- RecordRTC 5.6.2
+
+**Backend Stack:**
+- Express.js (Node.js)
+- Supabase (PostgreSQL)
+- Gmail API (IMAP/SMTP)
+- Google Calendar API
+- Dropbox API
+- OpenRouter (Claude 3.5 Sonnet)
+- OpenAI (Whisper transcription)
+- ElevenLabs (Text-to-speech)
+- HeyGen API (Avatar)
+
+**Deployment:**
+- Frontend: Vercel (auto-deploy from main)
+- Backend: Render (auto-deploy from main)
+- Database: Supabase (Sweden datacenter)
+- Cron: Render Cron Jobs
+
+**Architecture Highlights:**
+- 46+ backend API endpoints
+- 30 Claude tools with tool executor pattern
+- 3-layer conversation memory system
+- HeyGen 3D interactive avatar
+- Physics-based task management
+- Three.js 3D visualizations
+- Automated daily sync & cleanup
+- Multi-language support (Swedish/English)
+
+---
+
+**Last Updated**: October 31, 2025
 **Next Agent**: Read this first, then ask Jonas what to work on! 🚀
+
+---
+
+## 🎯 System Health Status (Oct 31, 2025)
+
+### ✅ Fully Operational:
+- Receipt OCR (1,080+ receipts tracked, OpenRouter only)
+- Gmail sync (50 emails in smart_memories, last sync 07:03 AM)
+- Calendar integration (dual calendars: personal + shared)
+- Daily automation (7 AM sync, cleanup, summaries)
+- HeyGen avatar (3D streaming working)
+- Flow dashboard (3 modes: Magnetic, Flow, Focus)
+- Vision Quest (3D space visualization)
+
+### 📊 Key Metrics:
+- **Receipts**: 1,080 total (55 in Oct, 334 in Sept, 319 in Aug)
+- **API Keys**: 1 OpenRouter key (simplified from 2 providers)
+- **Calendars**: 2 (Personal + Lina och Jonas shared)
+- **Cost**: ~$0.002 per receipt OCR
+- **Uptime**: Backend healthy on Render
+
+### 🔧 Recent Fixes:
+- PDF OCR now works with OpenRouter file parser
+- Removed Anthropic API dependency
+- Added shared calendar support
+- Validated all connections (Gmail, Calendar, Dropbox)
+
+**System is production-ready and fully automated!**
