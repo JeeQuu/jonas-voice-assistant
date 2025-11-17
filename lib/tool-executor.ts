@@ -143,11 +143,11 @@ export async function executeTool(toolName: string, params: any): Promise<any> {
     } else if (toolName === 'update_user_context') {
       result = await callBackend('/api/update-context', 'POST', params);
     } else if (toolName === 'get_health_today' || toolName === 'get_today_health') {
-      result = await callBackend('/api/health-today', 'GET');
+      result = await callBackend('/api/user-health/today', 'GET');
     } else if (toolName === 'update_health_data') {
-      result = await callBackend('/api/update-health', 'POST', params);
+      result = await callBackend('/api/user-health/update', 'POST', params);
     } else if (toolName === 'view_health_trends') {
-      result = await callBackend('/api/health-trends', 'GET', {
+      result = await callBackend('/api/user-health/trends', 'GET', {
         days: params.days || 30
       });
     }
