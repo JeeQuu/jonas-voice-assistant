@@ -152,7 +152,7 @@ export async function executeTool(toolName: string, params: any): Promise<any> {
       });
     }
     // ===== DAILY OPERATIONS =====
-    else if (toolName === 'get_daily_briefing') {
+    else if (toolName === 'get_daily_briefing' || toolName === 'get_daily_context') {
       result = await callBackend('/api/daily-briefing', 'GET');
     } else if (toolName === 'trigger_sync') {
       result = await callBackend('/api/trigger-sync', 'POST');
