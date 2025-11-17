@@ -151,6 +151,15 @@ export async function executeTool(toolName: string, params: any): Promise<any> {
         days: params.days || 30
       });
     }
+    // ===== CONTACTS =====
+    else if (toolName === 'get_contacts') {
+      result = await callBackend('/api/contacts', 'GET', {
+        role: params.role,
+        search: params.search
+      });
+    } else if (toolName === 'create_contact') {
+      result = await callBackend('/api/contacts', 'POST', params);
+    }
     // ===== DAILY OPERATIONS =====
     else if (toolName === 'get_daily_briefing' || toolName === 'get_daily_context') {
       result = await callBackend('/api/daily-briefing', 'GET');
