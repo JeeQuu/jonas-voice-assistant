@@ -1,14 +1,41 @@
 // Unified tool executor - handles all 30 operations
+// SECURITY: Now uses server-side proxy to keep API key secure
 
-const BACKEND_API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY || 'JeeQuuFjong';
+export async function executeTool(toolName: string, params: any): Promise<any> {
+  try {
+    console.log(`[Tool Executor] Executing: ${toolName}`);
 
+    // Call our secure server-side proxy
+    const response = await fetch('/api/tools/execute', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ toolName, params })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: response.statusText }));
+      console.error(`[Tool Executor] Error:`, errorData);
+      throw new Error(errorData.error || 'Tool execution failed');
+    }
+
+    const data = await response.json();
+    return data.result;
+  } catch (error: any) {
+    console.error(`[Tool Executor] Failed to execute ${toolName}:`, error);
+    throw error;
+  }
+}
+
+// Legacy code below - keeping for reference but no longer used
+/*
 async function callBackend(endpoint: string, method: string = 'GET', body?: any) {
   const options: RequestInit = {
     method,
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': API_KEY
+      'x-api-key': 'REMOVED_FOR_SECURITY' // Now handled by proxy
     }
   };
 
@@ -16,14 +43,13 @@ async function callBackend(endpoint: string, method: string = 'GET', body?: any)
     options.body = JSON.stringify(body);
   }
 
-  // Filter out undefined/null values from query params
   const cleanBody = body && method === 'GET'
     ? Object.fromEntries(Object.entries(body).filter(([_, v]) => v !== undefined && v !== null))
     : body;
 
   const url = method === 'GET' && cleanBody && Object.keys(cleanBody).length > 0
-    ? `${BACKEND_API}${endpoint}?${new URLSearchParams(cleanBody).toString()}`
-    : `${BACKEND_API}${endpoint}`;
+    ? `${endpoint}?${new URLSearchParams(cleanBody).toString()}`
+    : endpoint;
 
   console.log(`[Tool Executor] Calling: ${method} ${url}`);
 
@@ -35,8 +61,10 @@ async function callBackend(endpoint: string, method: string = 'GET', body?: any)
   }
   return await response.json();
 }
+*/
 
-export async function executeTool(toolName: string, params: any): Promise<any> {
+// OLD CODE - Tool execution is now handled by proxy
+export async function executeToolOLD(toolName: string, params: any): Promise<any> {
   try {
     // ===== GMAIL =====
     if (toolName === 'search_gmail') {

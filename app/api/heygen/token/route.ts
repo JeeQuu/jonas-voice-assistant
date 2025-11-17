@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 
 export async function POST() {
-  const HEYGEN_API_KEY = process.env.NEXT_PUBLIC_HEYGEN_API_KEY;
+  // Use server-side only env var (no NEXT_PUBLIC_ prefix)
+  const HEYGEN_API_KEY = process.env.HEYGEN_API_KEY;
 
   if (!HEYGEN_API_KEY) {
     return NextResponse.json(

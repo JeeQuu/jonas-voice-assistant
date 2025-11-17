@@ -7,7 +7,8 @@ const supabase = createClient(
 );
 
 const BACKEND_API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY || 'JeeQuuFjong';
+// SECURITY: Use server-side only API key
+const API_KEY = process.env.API_KEY || 'JeeQuuFjong';
 
 /**
  * POST /api/session/start
@@ -58,7 +59,7 @@ async function buildSessionContext() {
 
   // LAYER 1: Core Identity (always include)
   try {
-    const coreResponse = await fetch(`${BACKEND_API}/api/user-context?layer=current`, {
+    const coreResponse = await fetch(`${BACKEND_API}/api/user-context?layer=core`, {
       headers: { 'x-api-key': API_KEY }
     });
     const coreData = await coreResponse.json();

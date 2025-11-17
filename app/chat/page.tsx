@@ -5,7 +5,7 @@ import { Mic, MicOff, Send, Loader2, Sparkles } from 'lucide-react';
 import HeyGenAvatar from './components/HeyGenAvatar';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY || 'JeeQuuFjong';
+// SECURITY: API_KEY removed - now handled by server-side proxy
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
