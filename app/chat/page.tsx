@@ -189,10 +189,10 @@ export default function ChatPage() {
         };
         setMessages(prev => [...prev, assistantMessage]);
 
-        // Make HeyGen avatar speak the response
-        if ((window as any).heygenSpeak) {
-          (window as any).heygenSpeak(data.response);
-        }
+        // Make HeyGen avatar speak the response - TEMPORARILY DISABLED
+        // if ((window as any).heygenSpeak) {
+        //   (window as any).heygenSpeak(data.response);
+        // }
 
         // Save insight if important
         if (data.shouldSaveInsight) {
@@ -322,12 +322,12 @@ export default function ChatPage() {
 
       {/* Chat container */}
       <main className="max-w-4xl mx-auto px-6 py-8 pb-32">
-        {/* HeyGen Avatar */}
-        <div className="mb-8">
+        {/* HeyGen Avatar - TEMPORARILY DISABLED FOR DEBUGGING */}
+        {/* <div className="mb-8">
           <HeyGenAvatar
             disabled={isLoading}
           />
-        </div>
+        </div> */}
 
         <div className="space-y-6">
           {messages.map((msg, idx) => (
